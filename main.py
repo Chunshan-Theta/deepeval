@@ -30,16 +30,30 @@ answer_relevancy_metric = AnswerRelevancyMetric(
 test1 = {
     "input": "台灣的首都是哪裡",
     "retrieval_context": ["台灣的首都是台北市"],
-    "expected_output": "台北市"
+    "expected_output": "台北市",
+    "actual_output": llama.generate("台灣的首都是哪裡")
 
 }
+print("\n\n\n-------------------")
+print(test1)
 
-test_case = LLMTestCase(
-    input=test1.get("input"),
-    actual_output=llama.generate(test1.get("input")),
-    expected_output=test1.get("expected_output"),
-    retrieval_context=test1.get("retrieval_context")
-)
+test_case = LLMTestCase(**test1)
+answer_relevancy_metric.measure(test_case)
+print(answer_relevancy_metric.score)
+print(answer_relevancy_metric.reason)
+
+
+test1 = {
+    "input": "台灣的首都是哪裡",
+    "retrieval_context": [],
+    "expected_output": "台北市",
+    "actual_output": llama.generate("台灣的首都是哪裡")
+
+}
+print("\n\n\n-------------------")
+print(test1)
+
+test_case = LLMTestCase(**test1)
 answer_relevancy_metric.measure(test_case)
 print(answer_relevancy_metric.score)
 print(answer_relevancy_metric.reason)
