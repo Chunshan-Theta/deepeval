@@ -8,7 +8,8 @@ import configparser
 # Create a ConfigParser object
 config = configparser.ConfigParser()
 config.read('llmsetting.conf')
-base_url = config.get('ollama', None)
+base_url = config.get('ollama', "base_url")
+assert base_url is not None, "Please provide a valid base_url in llmsetting.conf"
 
 # Replace these with real values
 custom_model = Ollama(
@@ -25,11 +26,19 @@ answer_relevancy_metric = AnswerRelevancyMetric(
     model=llama,
     async_mode=False
 )
+
+test1 = {
+    "input": "台灣的首都是哪裡",
+    "retrieval_context": ["台灣的首都是台北市"],
+    "expected_output": "台北市"
+
+}
+
 test_case = LLMTestCase(
-    input="What if these shoes don't fit?",
-    # Replace this with the actual output of your LLM application
-    actual_output="We offer a 30-day full refund at no extra cost.",
-    retrieval_context=["All customers are eligible for a 30 day full refund at no extra cost."]
+    input=test1.get("input"),
+    actual_output=llama.generate(test1.get("input")),
+    expected_output=test1.get("expected_output"),
+    retrieval_context=test1.get("retrieval_context")
 )
 answer_relevancy_metric.measure(test_case)
 print(answer_relevancy_metric.score)
