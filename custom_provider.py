@@ -1,6 +1,46 @@
 from langchain_core.language_models.llms import BaseLLM
+from langchain_core.language_models.base import BaseLanguageModel
+from langchain_core.callbacks import (
+    AsyncCallbackManager,
+    AsyncCallbackManagerForLLMRun,
+    BaseCallbackManager,
+    CallbackManager,
+    CallbackManagerForLLMRun,
+    Callbacks,
+)
+from langchain_core.outputs import Generation, GenerationChunk, LLMResult, RunInfo
+import requests
+from typing import (
+    Any,
+    AsyncIterator,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    cast,
+    Mapping
+)
+import json
 
-class _OllamaCommon(BaseLanguageModel):
+class LLMEndpointNotFoundError(Exception):
+    """Raised when the LLM endpoint is not found."""
+
+def _stream_response_to_generation_chunk(
+    stream_response: str,
+) -> GenerationChunk:
+    """Convert a stream response to a generation chunk."""
+    parsed_response = json.loads(stream_response)
+    generation_info = parsed_response if parsed_response.get("done") is True else None
+    return GenerationChunk(
+        text=parsed_response.get("message", ""), generation_info=generation_info
+    )
+
+class _Common(BaseLanguageModel):
     base_url: str = "http://localhost:11434"
     """Base url the model is hosted under."""
 
@@ -32,7 +72,7 @@ class _OllamaCommon(BaseLanguageModel):
 
     num_thread: Optional[int] = None
     """Sets the number of threads to use during computation.
-    By default, Ollama will detect this for optimal performance.
+    By default, LLM will detect this for optimal performance.
     It is recommended to set this value to the number of physical
     CPU cores your system has (as opposed to the logical number of cores)."""
 
@@ -100,7 +140,7 @@ class _OllamaCommon(BaseLanguageModel):
 
     headers: Optional[dict] = None
     """Additional headers to pass to endpoint (e.g. Authorization, Referer).
-    This is useful when Ollama is hosted on cloud services that require
+    This is useful when LLM is hosted on cloud services that require
     tokens for authentication.
     """
 
@@ -110,7 +150,7 @@ class _OllamaCommon(BaseLanguageModel):
 
     @property
     def _default_params(self) -> Dict[str, Any]:
-        """Get the default parameters for calling Ollama."""
+        """Get the default parameters for calling LLM."""
         return {
             "model": self.model,
             "format": self.format,
@@ -152,7 +192,7 @@ class _OllamaCommon(BaseLanguageModel):
         yield from self._create_stream(
             payload=payload,
             stop=stop,
-            api_url=f"{self.base_url}/api/generate",
+            api_url=f"{self.base_url}/v1/chat/completions",
             **kwargs,
         )
 
@@ -167,7 +207,7 @@ class _OllamaCommon(BaseLanguageModel):
         async for item in self._acreate_stream(
             payload=payload,
             stop=stop,
-            api_url=f"{self.base_url}/api/generate",
+            api_url=f"{self.base_url}/v1/chat/completions",
             **kwargs,
         ):
             yield item
@@ -199,14 +239,32 @@ class _OllamaCommon(BaseLanguageModel):
                 **{k: v for k, v in kwargs.items() if k not in self._default_params},
             }
 
-        if payload.get("messages"):
-            request_payload = {"messages": payload.get("messages", []), **params}
-        else:
-            request_payload = {
-                "prompt": payload.get("prompt"),
-                "images": payload.get("images", []),
-                **params,
-            }
+        request_message = payload.get("messages", [])
+        if params.get("system"):
+            request_message.append({
+                "role": "system",
+                "content": [
+                {
+                    "type": "text",
+                    "text": params.get("system")
+                }
+                ]
+            })
+        if payload.get("prompt"):
+            request_message.append({
+                "role": "user",
+                "content": [
+                {
+                    "type": "text",
+                    "text": payload.get("prompt")
+                }
+                ]
+            })
+        request_payload = {
+            "messages": request_message,
+            "max_tokens": 2048,
+            **params,
+        }
         response = requests.post(
             url=api_url,
             headers={
@@ -221,19 +279,20 @@ class _OllamaCommon(BaseLanguageModel):
         response.encoding = "utf-8"
         if response.status_code != 200:
             if response.status_code == 404:
-                raise OllamaEndpointNotFoundError(
-                    "Ollama call failed with status code 404. "
+                raise LLMEndpointNotFoundError(
+                    "API call failed with status code 404. "
                     "Maybe your model is not found "
-                    f"and you should pull the model with `ollama pull {self.model}`."
+                    f"Info: api_url: {api_url}"
                 )
             else:
                 optional_detail = response.text
                 raise ValueError(
-                    f"Ollama call failed with status code {response.status_code}."
+                    f"LLM call failed with status code {response.status_code}."
                     f" Details: {optional_detail}"
+                    f" Request payload: {request_payload}"
                 )
-        return response.iter_lines(decode_unicode=True)
-
+        reobj = [json.dumps({"message": choice['message']['content']},ensure_ascii=False) for choice in response.json()['choices']]
+        return reobj
     async def _acreate_stream(
         self,
         api_url: str,
@@ -283,13 +342,13 @@ class _OllamaCommon(BaseLanguageModel):
             ) as response:
                 if response.status != 200:
                     if response.status == 404:
-                        raise OllamaEndpointNotFoundError(
-                            "Ollama call failed with status code 404."
+                        raise LLMEndpointNotFoundError(
+                            "LLM call failed with status code 404."
                         )
                     else:
                         optional_detail = response.text
                         raise ValueError(
-                            f"Ollama call failed with status code {response.status}."
+                            f"LLM call failed with status code {response.status}."
                             f" Details: {optional_detail}"
                         )
                 async for line in response.content:
@@ -317,7 +376,7 @@ class _OllamaCommon(BaseLanguageModel):
                         verbose=verbose,
                     )
         if final_chunk is None:
-            raise ValueError("No data received from Ollama stream.")
+            raise ValueError("No data received from LLM stream.")
 
         return final_chunk
 
@@ -343,17 +402,13 @@ class _OllamaCommon(BaseLanguageModel):
                         verbose=verbose,
                     )
         if final_chunk is None:
-            raise ValueError("No data received from Ollama stream.")
+            raise ValueError("No data received from LLM stream.")
 
         return final_chunk
-class Ollama(BaseLLM, _OllamaCommon):
-    """Ollama locally runs large language models.
-    To use, follow the instructions at https://ollama.ai/.
-    Example:
-        .. code-block:: python
-            from langchain_community.llms import Ollama
-            ollama = Ollama(model="llama2")
-    """
+
+        
+class AnswerAIProvide(BaseLLM, _Common):
+    """locally runs large language models."""
 
     class Config:
         extra = "forbid"
@@ -361,7 +416,7 @@ class Ollama(BaseLLM, _OllamaCommon):
     @property
     def _llm_type(self) -> str:
         """Return type of llm."""
-        return "ollama-llm"
+        return "Claude-AnswerAI"
 
     def _generate(  # type: ignore[override]
         self,
@@ -371,15 +426,12 @@ class Ollama(BaseLLM, _OllamaCommon):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> LLMResult:
-        """Call out to Ollama's generate endpoint.
+        """Call out to LLM's generate endpoint.
         Args:
             prompt: The prompt to pass into the model.
             stop: Optional list of stop words to use when generating.
         Returns:
             The string generated by the model.
-        Example:
-            .. code-block:: python
-                response = ollama("Tell me a joke.")
         """
         # TODO: add caching here.
         generations = []
@@ -403,15 +455,13 @@ class Ollama(BaseLLM, _OllamaCommon):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> LLMResult:
-        """Call out to Ollama's generate endpoint.
+        """Call out to LLM's generate endpoint.
         Args:
             prompt: The prompt to pass into the model.
             stop: Optional list of stop words to use when generating.
         Returns:
             The string generated by the model.
-        Example:
-            .. code-block:: python
-                response = ollama("Tell me a joke.")
+
         """
         # TODO: add caching here.
         generations = []
