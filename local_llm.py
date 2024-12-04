@@ -1,4 +1,5 @@
 from deepeval.models.base_model import DeepEvalBaseLLM
+from typing import Tuple
 
 class LocalLLM(DeepEvalBaseLLM):
     def __init__(
@@ -12,14 +13,16 @@ class LocalLLM(DeepEvalBaseLLM):
     def load_model(self):
         return self.model
 
-    def generate(self, prompt: str, **kwagrs) -> str:
+    def generate(self, prompt: str) -> str:
         chat_model = self.load_model()
-        return str(chat_model.invoke(prompt,**kwagrs))
+        text =  str(chat_model.invoke(prompt))
+        return text
 
-    async def a_generate(self, prompt: str,**kwagrs) -> str:
+    async def a_generate(self, prompt: str) -> str:
         chat_model = self.load_model()
-        res = await chat_model.ainvoke(prompt,**kwagrs)
-        return str(res)
+        res = await chat_model.ainvoke(prompt)
+        return res
+    
 
     def get_model_name(self):
         return self.model_name

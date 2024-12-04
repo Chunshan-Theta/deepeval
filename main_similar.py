@@ -43,27 +43,13 @@ test_source = {
 print(f"test_source: {test_source}")
 test_case = LLMTestCase(**test_source)
 
-
-
-print("\n\n\n-------------------")
-correctness_metric = GEval(
-    name="Correctness",
-    model=model,
-    evaluation_params=[
-        LLMTestCaseParams.INPUT,
-        LLMTestCaseParams.ACTUAL_OUTPUT,
-        LLMTestCaseParams.EXPECTED_OUTPUT],
-    evaluation_steps=[
-       'Compare the actual output directly with the expected output to verify factual accuracy.',
-       'Check if all elements mentioned in the expected output are present and correctly represented in the actual output.',
-       'Assess if there are any discrepancies in details, values, or information between the actual and expected outputs.'
-    ],
-    strict_mode=True
-)
-
-correctness_metric.measure(test_case)
-print(correctness_metric.score, correctness_metric.reason)
-# test_cases = [test_case]
-# dataset = EvaluationDataset(test_cases=test_cases)
-# dataset.evaluate([correctness_metric])
+# print("\n\n\n-------------------")
+# answer_relevancy_metric = AnswerRelevancyMetric(
+#     threshold=0.5,
+#     model=model,
+#     async_mode=False
+# )
+# answer_relevancy_metric.measure(test_case)
+# print(answer_relevancy_metric.score)
+# print(answer_relevancy_metric.reason)
 

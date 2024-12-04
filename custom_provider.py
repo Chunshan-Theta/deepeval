@@ -10,6 +10,7 @@ from langchain_core.callbacks import (
 )
 from langchain_core.outputs import Generation, GenerationChunk, LLMResult, RunInfo
 import requests
+import aiohttp
 from typing import (
     Any,
     AsyncIterator,
@@ -323,9 +324,30 @@ class _Common(BaseLanguageModel):
         if payload.get("messages"):
             request_payload = {"messages": payload.get("messages", []), **params}
         else:
+            request_message = payload.get("messages", [])
+            if params.get("system"):
+                request_message.append({
+                    "role": "system",
+                    "content": [
+                    {
+                        "type": "text",
+                        "text": params.get("system")
+                    }
+                    ]
+                })
+            if payload.get("prompt"):
+                request_message.append({
+                    "role": "user",
+                    "content": [
+                    {
+                        "type": "text",
+                        "text": payload.get("prompt")
+                    }
+                    ]
+                })
             request_payload = {
-                "prompt": payload.get("prompt"),
-                "images": payload.get("images", []),
+                "messages": request_message,
+                "max_tokens": 2048,
                 **params,
             }
 
@@ -350,9 +372,13 @@ class _Common(BaseLanguageModel):
                         raise ValueError(
                             f"LLM call failed with status code {response.status}."
                             f" Details: {optional_detail}"
+                            f" Request payload: {request_payload}"
+                            f" Request URL: {api_url}"
                         )
                 async for line in response.content:
-                    yield line.decode("utf-8")
+                    reply = {"message": json.loads(line.decode("utf-8"))["choices"][0]['message']['content']}
+                    if reply:
+                        yield json.dumps(reply,ensure_ascii=False)
 
     def _stream_with_aggregation(
         self,
