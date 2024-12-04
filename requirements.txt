@@ -1,0 +1,4 @@
+requests==2.32.3
+deepeval==2.0.1
+nest_asyncio==1.6.0
+
