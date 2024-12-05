@@ -61,7 +61,7 @@ def get_correctness_metric_score(test_case):
 
 
 # load the dataset
-df = pd.read_csv('1129_lib_error_case.csv')
+df = pd.read_csv('1129_error_case.csv')
 
 
 ## prepare the test cases
@@ -77,5 +77,5 @@ def test_source(question_content: str, retrieval_context: list, expected_output:
 df[['correctness_metric_score','correctness_metric_reason']] = df.apply(lambda x: 
    pd.Series(get_correctness_metric_score(test_source(x['question'],[], x['note'], x['answer']))),
     axis=1)
-df.to_csv('1129_lib_error_case_with_score.csv', index=False)
+df.to_csv('1129_error_case_with_score.csv', index=False)
 

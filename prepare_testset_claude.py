@@ -50,10 +50,10 @@ model = LocalLLM(model=custom_model, model_name="claude-3-5-sonnet-20240620")
 
 
 print("\n\n\n-------------------")
-df = pd.read_csv('1129_lib_error_case_with_score.csv')
+df = pd.read_csv('1129_error_case_with_score.csv')
 df['claude-3-5-sonnet-20240620_reply'] = df.apply(
     lambda x: model.generate(x['question']),
     axis=1)
-df.to_csv('1129_lib_error_case_with_claude_reply.csv', index=False)
+df.to_csv('1129_error_case_with_claude_reply.csv', index=False)
 
 

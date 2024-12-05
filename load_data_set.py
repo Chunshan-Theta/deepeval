@@ -18,4 +18,4 @@ print(science_error)
 print("-"*10)
 
 
-liberal_arts_error.to_csv('1129_lib_error_case.csv', index=False)
+science_error.to_csv('1129_error_case.csv', index=False)
