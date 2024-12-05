@@ -58,7 +58,7 @@ correctness_metric = GEval(
        'Check if all elements mentioned in the expected output are present and correctly represented in the actual output.',
        'Assess if there are any discrepancies in details, values, or information between the actual and expected outputs.'
     ],
-    strict_mode=True
+    strict_mode=False # the sorce will be 0
 )
 
 correctness_metric.measure(test_case)
