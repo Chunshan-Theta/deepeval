@@ -266,6 +266,8 @@ class _Common(BaseLanguageModel):
             "max_tokens": 2048,
             **params,
         }
+        keys_to_remove = ['keep_alive', 'options', 'raw', 'system', 'template']
+        request_payload = {k: v for k, v in request_payload.items() if k not in keys_to_remove}
         response = requests.post(
             url=api_url,
             headers={
@@ -350,6 +352,8 @@ class _Common(BaseLanguageModel):
                 "max_tokens": 2048,
                 **params,
             }
+            keys_to_remove = ['keep_alive', 'options', 'raw', 'system', 'template']
+            request_payload = {k: v for k, v in request_payload.items() if k not in keys_to_remove}
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -368,7 +372,7 @@ class _Common(BaseLanguageModel):
                             "LLM call failed with status code 404."
                         )
                     else:
-                        optional_detail = response.text
+                        optional_detail = await response.json()
                         raise ValueError(
                             f"LLM call failed with status code {response.status}."
                             f" Details: {optional_detail}"
@@ -376,6 +380,8 @@ class _Common(BaseLanguageModel):
                             f" Request URL: {api_url}"
                         )
                 async for line in response.content:
+                    print(f"\n\n\nline: {line}")
+
                     reply = {"message": json.loads(line.decode("utf-8"))["choices"][0]['message']['content']}
                     if reply:
                         yield json.dumps(reply,ensure_ascii=False)
