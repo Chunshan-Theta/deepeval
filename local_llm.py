@@ -19,6 +19,7 @@ class LocalLLM(DeepEvalBaseLLM):
         return text
 
     async def a_generate(self, prompt: str) -> str:
+        raise RuntimeError("Not implemented For Async Mode")
         chat_model = self.load_model()
         res = await chat_model.ainvoke(prompt)
         return res
