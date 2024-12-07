@@ -195,6 +195,36 @@ class _HttpCommonModel(BaseLanguageModel):
 
         return [_gen_text_chunk(choice['message']['content']) for choice in response.json()['choices']]
     
+    def _gen_requests_payload(self, payload: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        request_message = payload.get("messages", [])
+        if params.get("system"):
+            request_message.append({
+                "role": "system",
+                "content": [
+                {
+                    "type": "text",
+                    "text": params.get("system")
+                }
+                ]
+            })
+        if payload.get("prompt"):
+            request_message.append({
+                "role": "user",
+                "content": [
+                {
+                    "type": "text",
+                    "text": payload.get("prompt")
+                }
+                ]
+            })
+        request_payload = {
+            "messages": request_message,
+            "max_tokens": 2048,
+            **params,
+        }
+        request_payload = {k: v for k, v in request_payload.items() if k not in self.keys_to_remove}
+        return request_payload
+
     def _create_generate_stream(
         self,
         prompt: str,
@@ -236,34 +266,6 @@ class _HttpCommonModel(BaseLanguageModel):
                 "stop": stop,
                 **{k: v for k, v in kwargs.items() if k not in self._default_params},
             }
-
-        request_message = payload.get("messages", [])
-        if params.get("system"):
-            request_message.append({
-                "role": "system",
-                "content": [
-                {
-                    "type": "text",
-                    "text": params.get("system")
-                }
-                ]
-            })
-        if payload.get("prompt"):
-            request_message.append({
-                "role": "user",
-                "content": [
-                {
-                    "type": "text",
-                    "text": payload.get("prompt")
-                }
-                ]
-            })
-        request_payload = {
-            "messages": request_message,
-            "max_tokens": 2048,
-            **params,
-        }
-        request_payload = {k: v for k, v in request_payload.items() if k not in self.keys_to_remove}
         response = requests.post(
             url=api_url,
             headers={
@@ -271,7 +273,7 @@ class _HttpCommonModel(BaseLanguageModel):
                 **(self.headers if isinstance(self.headers, dict) else {}),
             },
             auth=self.auth,
-            json=request_payload,
+            json=self._gen_requests_payload(payload, params),
             stream=True,
             timeout=self.timeout,
         )
