@@ -2,9 +2,8 @@ from deepeval.metrics import AnswerRelevancyMetric, GEval
 from custom_provider import AnswerAIProvide
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval import assert_test
-from local_llm import LocalLLM
+from utils import DeepEvalModelInterface
 import configparser
-from deepeval.dataset import EvaluationDataset
 import pandas as pd
 
 
@@ -33,7 +32,7 @@ custom_model = AnswerAIProvide(
     system="最後給出的`reason`請用台灣繁體中文進行輸出，且不得包含`\"`字元",
 ) 
 
-model = LocalLLM(model=custom_model, model_name=MODEL_NAME)
+model = DeepEvalModelInterface(model=custom_model, model_name=MODEL_NAME)
 
 
 

@@ -35,13 +35,17 @@ def _stream_response_to_generation_chunk(
     stream_response: str,
 ) -> GenerationChunk:
     """Convert a stream response to a generation chunk."""
-    parsed_response = json.loads(stream_response)
-    generation_info = parsed_response if parsed_response.get("done") is True else None
+    try:
+        parsed_response = json.loads(stream_response)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse response: {stream_response}") from e
+
     return GenerationChunk(
-        text=parsed_response.get("message", ""), generation_info=generation_info
+        text=parsed_response.get("message", ""),
+        generation_info=parsed_response if parsed_response.get("done") else None,
     )
 
-class _Common(BaseLanguageModel):
+class _HttpCommonModel(BaseLanguageModel):
     base_url: str = "http://localhost:11434"
     """Base url the model is hosted under."""
 
@@ -149,6 +153,7 @@ class _Common(BaseLanguageModel):
     """Additional auth tuple or callable to enable Basic/Digest/Custom HTTP Auth.
     Expects the same format, type and values as requests.request auth parameter."""
 
+    keys_to_remove: List[str] = ["keep_alive", "options", "raw", "system", "template"]
     @property
     def _default_params(self) -> Dict[str, Any]:
         """Get the default parameters for calling LLM."""
@@ -182,6 +187,14 @@ class _Common(BaseLanguageModel):
         """Get the identifying parameters."""
         return {**{"model": self.model, "format": self.format}, **self._default_params}
 
+    
+    def _extract_response(self, response: requests.Response) -> List[str]:
+        """Extract the response from the requests response."""
+        def _gen_text_chunk(content: str) -> str:
+            return json.dumps({"message": content}, ensure_ascii=False)
+
+        return [_gen_text_chunk(choice['message']['content']) for choice in response.json()['choices']]
+    
     def _create_generate_stream(
         self,
         prompt: str,
@@ -196,22 +209,6 @@ class _Common(BaseLanguageModel):
             api_url=f"{self.base_url}/v1/chat/completions",
             **kwargs,
         )
-
-    async def _acreate_generate_stream(
-        self,
-        prompt: str,
-        stop: Optional[List[str]] = None,
-        images: Optional[List[str]] = None,
-        **kwargs: Any,
-    ) -> AsyncIterator[str]:
-        payload = {"prompt": prompt, "images": images}
-        async for item in self._acreate_stream(
-            payload=payload,
-            stop=stop,
-            api_url=f"{self.base_url}/v1/chat/completions",
-            **kwargs,
-        ):
-            yield item
 
     def _create_stream(
         self,
@@ -266,8 +263,7 @@ class _Common(BaseLanguageModel):
             "max_tokens": 2048,
             **params,
         }
-        keys_to_remove = ['keep_alive', 'options', 'raw', 'system', 'template']
-        request_payload = {k: v for k, v in request_payload.items() if k not in keys_to_remove}
+        request_payload = {k: v for k, v in request_payload.items() if k not in self.keys_to_remove}
         response = requests.post(
             url=api_url,
             headers={
@@ -288,103 +284,13 @@ class _Common(BaseLanguageModel):
                     f"Info: api_url: {api_url}"
                 )
             else:
-                optional_detail = response.text
                 raise ValueError(
                     f"LLM call failed with status code {response.status_code}."
-                    f" Details: {optional_detail}"
-                    f" Request payload: {request_payload}"
+                    f"\n\n\tDetails: {response.text}"
+                    f"\n\n\tRequest payload: {request_payload}"
                 )
-        reobj = [json.dumps({"message": choice['message']['content']},ensure_ascii=False) for choice in response.json()['choices']]
-        return reobj
-    async def _acreate_stream(
-        self,
-        api_url: str,
-        payload: Any,
-        stop: Optional[List[str]] = None,
-        **kwargs: Any,
-    ) -> AsyncIterator[str]:
-        if self.stop is not None and stop is not None:
-            raise ValueError("`stop` found in both the input and default params.")
-        elif self.stop is not None:
-            stop = self.stop
+        return self._extract_response(response)
 
-        params = self._default_params
-
-        for key in self._default_params:
-            if key in kwargs:
-                params[key] = kwargs[key]
-
-        if "options" in kwargs:
-            params["options"] = kwargs["options"]
-        else:
-            params["options"] = {
-                **params["options"],
-                "stop": stop,
-                **{k: v for k, v in kwargs.items() if k not in self._default_params},
-            }
-
-        if payload.get("messages"):
-            request_payload = {"messages": payload.get("messages", []), **params}
-        else:
-            request_message = payload.get("messages", [])
-            if params.get("system"):
-                request_message.append({
-                    "role": "system",
-                    "content": [
-                    {
-                        "type": "text",
-                        "text": params.get("system")
-                    }
-                    ]
-                })
-            if payload.get("prompt"):
-                request_message.append({
-                    "role": "user",
-                    "content": [
-                    {
-                        "type": "text",
-                        "text": payload.get("prompt")
-                    }
-                    ]
-                })
-            request_payload = {
-                "messages": request_message,
-                "max_tokens": 2048,
-                **params,
-            }
-            keys_to_remove = ['keep_alive', 'options', 'raw', 'system', 'template']
-            request_payload = {k: v for k, v in request_payload.items() if k not in keys_to_remove}
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                url=api_url,
-                headers={
-                    "Content-Type": "application/json",
-                    **(self.headers if isinstance(self.headers, dict) else {}),
-                },
-                auth=self.auth,  # type: ignore[arg-type]
-                json=request_payload,
-                timeout=self.timeout,  # type: ignore[arg-type]
-            ) as response:
-                if response.status != 200:
-                    if response.status == 404:
-                        raise LLMEndpointNotFoundError(
-                            "LLM call failed with status code 404."
-                        )
-                    else:
-                        optional_detail = await response.json()
-                        raise ValueError(
-                            f"LLM call failed with status code {response.status}."
-                            f" Details: {optional_detail}"
-                            f" Request payload: {request_payload}"
-                            f" Request URL: {api_url}"
-                        )
-                async for line in response.content:
-                    print(f"\n\n\nline: {line}")
-
-                    reply = {"message": json.loads(line.decode("utf-8"))["choices"][0]['message']['content']}
-                    if reply:
-                        yield json.dumps(reply,ensure_ascii=False)
 
     def _stream_with_aggregation(
         self,
@@ -412,6 +318,22 @@ class _Common(BaseLanguageModel):
 
         return final_chunk
 
+    async def _acreate_generate_stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        images: Optional[List[str]] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[str]:
+        raise NotImplementedError("Async stream not implemented for http request model.")
+    async def _acreate_stream(
+        self,
+        api_url: str,
+        payload: Any,
+        stop: Optional[List[str]] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[str]:
+        raise NotImplementedError("Async stream not implemented for http request model.")
     async def _astream_with_aggregation(
         self,
         prompt: str,
@@ -420,26 +342,10 @@ class _Common(BaseLanguageModel):
         verbose: bool = False,
         **kwargs: Any,
     ) -> GenerationChunk:
-        final_chunk: Optional[GenerationChunk] = None
-        async for stream_resp in self._acreate_generate_stream(prompt, stop, **kwargs):
-            if stream_resp:
-                chunk = _stream_response_to_generation_chunk(stream_resp)
-                if final_chunk is None:
-                    final_chunk = chunk
-                else:
-                    final_chunk += chunk
-                if run_manager:
-                    await run_manager.on_llm_new_token(
-                        chunk.text,
-                        verbose=verbose,
-                    )
-        if final_chunk is None:
-            raise ValueError("No data received from LLM stream.")
-
-        return final_chunk
+        raise NotImplementedError("Async stream not implemented for http request model.")
 
         
-class AnswerAIProvide(BaseLLM, _Common):
+class AnswerAIProvide(BaseLLM, _HttpCommonModel):
     """locally runs large language models."""
 
     class Config:
@@ -479,36 +385,7 @@ class AnswerAIProvide(BaseLLM, _Common):
             generations.append([final_chunk])
         return LLMResult(generations=generations)  # type: ignore[arg-type]
 
-    async def _agenerate(  # type: ignore[override]
-        self,
-        prompts: List[str],
-        stop: Optional[List[str]] = None,
-        images: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> LLMResult:
-        """Call out to LLM's generate endpoint.
-        Args:
-            prompt: The prompt to pass into the model.
-            stop: Optional list of stop words to use when generating.
-        Returns:
-            The string generated by the model.
-
-        """
-        # TODO: add caching here.
-        generations = []
-        for prompt in prompts:
-            final_chunk = await super()._astream_with_aggregation(
-                prompt,
-                stop=stop,
-                images=images,
-                run_manager=run_manager,  # type: ignore[arg-type]
-                verbose=self.verbose,
-                **kwargs,
-            )
-            generations.append([final_chunk])
-        return LLMResult(generations=generations)  # type: ignore[arg-type]
-
+    
     def _stream(
         self,
         prompt: str,
@@ -525,7 +402,19 @@ class AnswerAIProvide(BaseLLM, _Common):
                         verbose=self.verbose,
                     )
                 yield chunk
-
+    async def _agenerate(  # type: ignore[override]
+        self,
+        prompts: List[str],
+        stop: Optional[List[str]] = None,
+        images: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> LLMResult:
+        raise NotImplementedError(
+            "Async generation is not supported for the HTTP request model. "
+            "Please use the synchronous `generate` method instead."
+        )
+        
     async def _astream(
         self,
         prompt: str,
@@ -533,12 +422,7 @@ class AnswerAIProvide(BaseLLM, _Common):
         run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> AsyncIterator[GenerationChunk]:
-        async for stream_resp in self._acreate_generate_stream(prompt, stop, **kwargs):
-            if stream_resp:
-                chunk = _stream_response_to_generation_chunk(stream_resp)
-                if run_manager:
-                    await run_manager.on_llm_new_token(
-                        chunk.text,
-                        verbose=self.verbose,
-                    )
-                yield chunk
+        raise NotImplementedError(
+            "Async generation is not supported for the HTTP request model. "
+            "Please use the synchronous `generate` method instead."
+        )

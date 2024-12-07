@@ -1,7 +1,7 @@
 from deepeval.models.base_model import DeepEvalBaseLLM
 from typing import Tuple
 
-class LocalLLM(DeepEvalBaseLLM):
+class DeepEvalModelInterface(DeepEvalBaseLLM):
     def __init__(
         self,
         model,
@@ -20,9 +20,9 @@ class LocalLLM(DeepEvalBaseLLM):
 
     async def a_generate(self, prompt: str) -> str:
         raise RuntimeError("Not implemented For Async Mode")
-        chat_model = self.load_model()
-        res = await chat_model.ainvoke(prompt)
-        return res
+        # chat_model = self.load_model()
+        # res = await chat_model.ainvoke(prompt)
+        # return res
     
 
     def get_model_name(self):
