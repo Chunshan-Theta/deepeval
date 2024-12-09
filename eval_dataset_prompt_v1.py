@@ -1,5 +1,5 @@
 from deepeval.metrics import AnswerRelevancyMetric, GEval
-from custom_provider import AnswerAIProvide
+from http_provider import AnswerAIProvide
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval import assert_test
 from utils import DeepEvalModelInterface

@@ -197,6 +197,7 @@ class _HttpCommonModel(BaseLanguageModel):
     
     def _gen_requests_payload(self, payload: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
         request_message = payload.get("messages", [])
+        assert type(request_message) == list, "payload.messages should be a list"
         if params.get("system"):
             request_message.append({
                 "role": "system",
@@ -289,7 +290,6 @@ class _HttpCommonModel(BaseLanguageModel):
                 raise ValueError(
                     f"LLM call failed with status code {response.status_code}."
                     f"\n\n\tDetails: {response.text}"
-                    f"\n\n\tRequest payload: {request_payload}"
                 )
         return self._extract_response(response)
 
