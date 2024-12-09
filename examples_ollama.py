@@ -2,7 +2,7 @@ from deepeval.metrics import AnswerRelevancyMetric
 from langchain_community.llms import Ollama
 from deepeval.test_case import LLMTestCase
 from deepeval import assert_test
-from local_llm import LocalLLM
+from utils import OllamaInterface
 import configparser
 
 # Create a ConfigParser object
@@ -17,7 +17,7 @@ custom_model = Ollama(
     base_url=base_url,
 ) 
 
-llama = LocalLLM(model=custom_model)
+llama = OllamaInterface(model=custom_model)
 metric = AnswerRelevancyMetric(model=llama)
 
 

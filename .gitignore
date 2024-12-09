@@ -2,3 +2,5 @@
 *.deepeval*
 *.log
 .venv
+*.pyc
+*.csv
