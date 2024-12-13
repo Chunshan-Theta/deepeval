@@ -3,6 +3,8 @@ import pandas as pd
 df = pd.read_csv('1129_錯題.csv')
 df = df.dropna(subset=['学科'])
 print(df)
+df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+
 print("-"*10)
 
 # liberal_arts = df[df['学科'].str.contains('文科')]
