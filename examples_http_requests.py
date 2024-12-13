@@ -5,6 +5,7 @@ from deepeval import assert_test
 from utils import DeepEvalModelInterface
 import configparser
 import pandas as pd
+from evals import _evaluation_standard_same_meaning, _evaluation_standard_default
 
 
 
@@ -45,13 +46,7 @@ def get_correctness_metric_score(test_case):
             LLMTestCaseParams.INPUT,
             LLMTestCaseParams.ACTUAL_OUTPUT,
             LLMTestCaseParams.EXPECTED_OUTPUT],
-        evaluation_steps=[
-            'Directly compare actual output to expected output to verify factual accuracy.',
-            'Check whether all elements mentioned in the expected output are present and correctly represented in the actual output.',
-            'Evaluate whether there are differences in details, values, or information between actual output and expected output. ',
-            'Evaluate whether all elements mentioned in the expected output are highlighted in the actual output',
-            'Assess whether the actual output is of appropriate depth and readability for secondary school students'       
-        ],
+        evaluation_steps=_evaluation_standard_default,
         async_mode=False,
         strict_mode=False # the sorce will be 0
     )
