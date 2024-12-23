@@ -39,6 +39,7 @@ except yaml.YAMLError as exc:
 # 印出讀取的內容
 # print(plan)
 
+model_type = plan['model_type']
 response_model_base_url = plan['response_model']['args']['base_url']
 response_model_token = plan['response_model']['args']['token']
 response_model_name = plan['response_model']['body_args']['model_name']
@@ -50,6 +51,7 @@ eval_model_name = plan['evaluation_model']['body_args']['model_name']
 eval_model_system = plan['evaluation_model']['body_args']['system_prompt']
 evaluation_criteria = plan['evaluation_criteria']['evals']
 
+assert model_type in ["https"], "model_type should be `https`."
 
 model = DeepEvalModelInterface(model=AnswerAIProvide(
     model=response_model_name,
