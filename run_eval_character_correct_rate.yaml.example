@@ -1,0 +1,703 @@
+response_model:
+  model_type: 'https'
+  args:
+    base_url: ''
+    token: ''
+  body_args:
+    model_name: 'gpt-4o-mini'
+    system_prompt: |
+      You are a very helpful math expert.You will be provided a question need to be solved 
+
+      Let's work this out it a step by step to be sure we have the right answer.
+      You also need to list the concept and theory of the question.
+      The following parts provides more advanced and precise restrictions and descriptions for the output results.
+
+      ##################
+      # Rules #
+      - Your output must include [step] section and one [answer] and one [concept] section
+      - In [step] :  
+              - Step-by-step problem-solving process.
+              - each [step] must include one "# i" and one "# c"
+              - # i ：instruction, What should you do in this step? Use concise sentences
+              - # c ：calculation, Concrete operation in this step
+      - In [answer] :                
+              - the right answer of the problem.
+              - If it is a choice question, you need to fill in the answer choices
+      - In [concept] :
+              - concept in the question, in at most 5 words.
+              - Use concepts common to middle school and college as much as possible
+      - Your response must not include "##" tag.
+      - Mathematical expressions need to be displayed in LaTeX format.
+      - Do not enclose LaTeX content with "```" symbol.
+
+      ##################
+      # Output Format Examples #
+
+      Input
+      '''
+      Solve : -5x+4y = 3,  x=2y-15 ;  x=? y=?
+      '''
+
+      Output 
+      '''
+      [step]
+      # i
+      Substitute the value of x from the second equation into the first equation
+      # c
+      -5(2y-15) + 4y = 3
+      [step]
+      # i
+      Simplify the equation
+      # c
+      -10y + 75 + 4y = 3
+      [step]
+      # i
+      Combine like terms
+      [calculation]
+      -6y + 75 = 3
+      [step]
+      # i
+      Subtract 75 from both sides
+      # c
+      -6y = -72
+      [step]
+      # i
+      Divide by -6
+      # c
+      y = 12
+      [step]
+      # i
+      substitute y back into the second equation to find x
+      # c
+      x = 2(12) - 15.
+      [step]
+      # i
+      Calculate
+      # c
+      x = 24 - 15,The value of x is 9.
+      [Answer]
+      x=9
+      [Concept]
+      linear equation
+      '''
+evaluation_model:
+  model_type: 'https'
+  args:
+    base_url: ''
+    token: ''
+  body_args:
+    model_name: 'gpt-4o'
+    system_prompt: '最後給出的`reason`請用台灣繁體中文進行輸出，且不得包含`\"`字元。'
+
+test_examples:
+  goldenset:
+    - text: 'Questlon 1 of 26\nHow do limiting factors affect an ecosystem?\nA. They cause more animals to move into an ecosystem to stabilize it.\nB. They keep population sizes steady, which results in a more stable ecosystem.\nC. They cause increased cooperation in a species, which causes an ecosystem to become destabilized.\nD. They make predation easier, which causes an ecosystem to become destabilized.\nSUBMT'
+      true_answer: 'B.They keep population sizes steady, which results in a more stable ecosystem.'
+
+    - text: 'The type of microbial metabolic pathway that is most often exploited to make acids and alcohols industrially is\nMultiple Choice\nanaerobic respiration.\namphibolism.\naerobic respiration.\nfermentation.'
+      true_answer: 'anaerobic, respiration, fermentation'
+
+    - text: 'Question 5 of 10\nWhat are the basic units of a chemical element called?\nA. Gases\nB. Atoms\nC. Molecules\nD. Solids'
+      true_answer: 'B.Atoms'
+
+    - text: 'A ball is shot from the ground straight up into the air with initial velocity of $43 ft / sec$. Assuming that the air resistance can be ignored, how high does it go?\n$\\square$\nHint: The acceleration due to gravity is $32 ft$ per second squared.\nOuestion Help:\nVideo'
+      true_answer: '$28.89$'
+
+    - text: 'Which statements describe the characteristics of an individual protein? Select two options.\nIt is specific to one biochemical reaction.\nIt increases the activation energy needed for a reaction.\nIt can catalyze many different reactions.\nIt increases the rate of a biochemical reaction.\nIt slows down the rate of a biochemical reaction.'
+      true_answer: 'It is specific to one biochemical reaction, It increases the rate of a biochemical reaction.'
+
+    - text: 'In fetal circulation, what is the opening between the right and left atria called?\n(A) Umbilicus\n(B) Foramen ovale\n(C\\) Ductus venousus\nD Ductus arteriosus\n(E) Fossa ovalis'
+      true_answer: '(B) Foramen ovale'
+
+    - text: 'According to the geological time scale, $\\square$ evolved after the first insects evolved.\nmammals\nbacteria\ncells with a nucleus\nmulticellular organisms'
+      true_answer: 'mammals'
+
+    - text: 'Question 1\n\nA pleural effusion is MOST accurately defined as:\na unilaterally collapsed lung.\ndiffuse collapsing of the alveoli.\nfluid accumulation outside the lung.\na bacterial infection of the lung tissue.'
+      true_answer: 'fluid accumulation outside the lung'
+
+    - text: 'Which refers to the distance between two crests or two troughs on a transverse wave?\nwavelength\namplitude\nfrequency\nhertz'
+      true_answer: 'Wavelength'
+
+    - text: 'What kind of bonds are formed between water molecules?\nVan der Waals bonds\nHydrogen bonds\nIonic bonds'
+      true_answer: 'Hydrogen bonds'
+
+    - text: '16\n1 point\nAn example of a viral STD is\ntrichomoniasis.\ngenital herpes.\nsyphilis.\ngonorrhea.\n\nPrevious'
+      true_answer: 'genital herpes'
+
+    - text: 'Which is a characteristic of a solution?\nIts particles scatter light.\nIts particles are evenly distributed.\nIts particles settle out.\nIt has large suspended particles.'
+      true_answer: 'Its particles are evenly distributed'
+
+    - text: 'What produces two fertility hormones, Follicle stimulating hormone, and Luteinizing hormone?\nA. Pitultary\nB. Testes\nC. Pancreas\nD. Ovaries'
+      true_answer: 'A.Pitultary'
+
+    - text: 'The hormone calcitonin functions to\nelevate calcium levels in body fluids.\nstimulate osteoclast activity.\ndepress calcium levels in body fluids.\nstimulate the absorption of calcium and phosphate ions in the digestive tract.\ndepress osteoblast activity.'
+      true_answer: 'depress calcium levels in body fluids'
+
+    - text: 'Question 7 of 10\nWhich organisms would look most alike?\nA. Organisms in the same phylum\nB. Organisms in the same family\nc. Organisms in the same order\nD. Organisms in the same class'
+      true_answer: 'B.Organisms in the same family'
+
+    - text: 'Pentane gas, $C _{5} H _{12}$, reacts with oxygen to produce carbon dioxide\nPart B and water.\nHow many grams of $CO _{2}$ are produced from $32.0 g$ oxygen and excess pentane?'
+      true_answer: '$27.5$'
+
+    - text: 'Pre-Test\nActive\n1\n2\n3\n4\n5\n6\n?\n8\na.\n10\nWhich of the following could result in the extinction of a species?\nharsh restrictions on poachers\nincrease in the habitat size of a species\nadding a new species to the habitat\ndecrease tourism in protected areas'
+      true_answer: 'adding a new species to the habitat, decrease tourism in protected areas.'
+
+    - text: 'What are some benefits and consequences of modern farming techniques?\nCheck all that apply.\nA. Allows crop production to keep up with population growth\nB. Creates crops vulnerable to disease\nC. Creates higher crop yields\nD. Improves the overall biodiversity of affected ecosystems'
+      true_answer: 'A. Allows crop production to keep up with population growth\nB. Creates crops vulnerable to disease\nC. Creates higher crop yields'
+
+    - text: 'What is the difference between an element and a chemical compound?\nOnly elements are normally found in nature, whereas compounds are not\nA chemical compound is always more massive than an element\nAn element consists of only one type of atom, whereas compounds contain two or more types of atoms combined\nNo answer text provided.'
+      true_answer: 'An element consists of only one type of atom, whereas compounds contain two or more types of atoms combined.'
+
+    - text: 'What happens to snowflakes as they become progressively buried within glaciers?\nthey begin to melt as they are insulated from the cold air\nnone of the above\nthey become interlocking crystals of ice\nthey become less dense because of large amounts of trapped air'
+      true_answer: 'they become interlocking crystals of ice'
+
+    - text: 'How is an unknown oxidation state of an element within a compound determined?\nA. It will be the same as the charge on the compound.\nB. It is determined from known oxidation states of other elements.\nC. It is always the same as the most likely oxidation state.\nD. It will be the same in the products as in the reactants.'
+      true_answer: 'B.It is determined from known oxidation states of other elements.'
+
+    - text: 'Select the correct answer.\nJohn has two sisters and two brothers. Three of the five children in the family have dark brown hair, one has red hair, and one has light brown hair The variation in hair color is due to the input of multiple genes. What pattern of inheritance is exhibited here?\nA. Polygenotic inheritance\nB. Co-dominance\nC. Ploiotropy'
+      true_answer: 'A. Polygenotic inheritance.'
+
+    - text: 'What were the overall findings of Newsome et al. (1989) regarding the role of neurons in the middle temporal (MT) area of the brain in motion detection?\nThe study concluded that motion perception is primarily governed by neurons in the prefrontal cortex.\nMotion discrimination can be predicted by the response pattern of a single neuron in the MT area.\nNeurons in the MT area were found to have no significant role in motion perception\nSensory neurons originally located in the MT were able to change their function when integrated into a new area of the brain.'
+      true_answer: 'Motion discrimination can be predicted by the response pattern of a single neuron in the MT area.'
+
+    - text: '23) The H-C-H angle in alkanes is about $109^{\\circ}$, (0.5pts)\nTrue\nFalse'
+      true_answer: 'TRUE'
+
+    - text: '*CR-Alief - IPC A - Imagine\nAncient Greek Mythical Charac\narn.edgenuity.com/player/\nIf Siobhan hits a $0.25 kg$ volleyball with $0.5 N$ of force, what is the acceleration of the ball?\n$\\square$ $m / s ^{2}$'
+      true_answer: '$2$'
+
+    - text: 'Question 5 (2 points)\nListen\nIf you place the corner of a paper towel into a droplet of water the water moves across the paper towel. Which of the following would explain the movement of the water?\nsurface tension\nboth cohesion and adhesion\nadhesion\ncohesion'
+      true_answer: 'both cohesion and adhesion'
+
+    - text: 'Once incorporated into the peptide chain, the amino acids are known as amino acid $\\square$\nNeed help? Revlew these concept resources.'
+      true_answer: 'residues'
+
+    - text: 'Select the best answer for the question.\n18. Mosquitoes can often transmit viruses from one organism to another, acting as $\\qquad$ of the virus.\nA. symbionts\nB. parasites\nC. bacteriophage\nD. vectors'
+      true_answer: 'D.vectors'
+
+    - text: 'What is the role of the liver?\nA. It makes nephrons.\nB. It produces bile.\nC. It produces urine.\nD. It makes all four digestive enzymes.'
+      true_answer: 'B.It produces bile.'
+
+    - text: 'Four solutes are added to a solvent. All solutes have the same mass and solubility. The surface areas of four solutes are $2 mm ^{2}, 4 mm ^{2}, 6 mm ^{2}$, and $10 mm ^{2}$. Which solute will dissolve the quickest?\n$2 mm ^{2}$\n$4 mm ^{2}$\n$6 mm ^{2}$\n$10 mm ^{2}$'
+      true_answer: '$10 mm ^{2}$'
+
+    - text: 'The importance of divergent first digits in Primates is related to:\nPost-orbital closure\nAuto-grooming\nPentadactyly\nGrasping hands and feet\nStereoscopic vision'
+      true_answer: 'Grasping hands and feet'
+
+    - text: '3. Balance the following redox reaction in an acidic solution using any method you prefer (oxidation number or half reaction).\n$H _{2} PO _{2}{ }^{-}+ TeO _{4}{ }^{2-} \\rightarrow PO _{4}{ }^{3-}+ Te$'
+      true_answer: '${H_2PO_2}^- + {TeO_4}^{2-} +{2H}^+\rightarrow {PO_4}^{3-} + Te + 2H_2O$'
+
+    - text: 'Select the correct answer.\n\nIn a laboratory population of flies, the female flies are gray and the males are yellowish gray. Biologists observed that all the male flies had an equal chance for reproduction, but the male flies with the brightest colors were more likely to successfully reproduce. What phenomenon could explain such a change?\nA. sexual selection\nB. disruptive selection\nC. stabilizing selection\nD. directional selection'
+      true_answer: 'A.sexual selection'
+
+    - text: 'Which two elements have similar properties and 8 electrons in their outermost shells?\nA. Neon and argon\nB. Magnesium and calcium\nC. Lithium and sodium\nD. Fluorine and chlorine'
+      true_answer: 'A.Neon and argon'
+
+    - text: 'Gene expression within the body is controlled by the cells, which determine when a specific gene should or should not be expressed. Influenza (the flu) is caused by a virus that attacks the respiratory system. Which type of gene is likely to be widely expressed in the body of someone who contracts the influenza virus?\nThe gene that controls production of stem cells.\nThe gene that controls production of skin cells.\nThe gene that controls production of red blood cells.\nThe gene that controls production of white blood cells.'
+      true_answer: 'The gene that controls production of white blood cells.'
+
+    - text: 'Children are capable of learning new words very quickly; many times after only one presentation of the word. This trait is referred to as\nfastmapping\nlanguage learning\nlanguage selection\none-to-one mapping'
+      true_answer: 'fastmapping'
+
+    - text: '\\[\n\\begin{array}{l}\n\\text { Complete and balance reaction in } \\\\\nBr ^{-}( aq )+ MnO _{4}( aq ) \\rightarrow MnO _{2}( s ) \\\\\n+ BrO _{3}( aq ) \\\\\n\\end{array}\n\\]\n* 2\nalkaline medium by using oxidation numbers or half equation method.\n$Br ^{-}( aq )+2 MnO _{4}( aq )+2 H ^{+}( aq ) \\rightarrow$ $2 MnO _{2}( s )+ BrO _{3}( aq )+ H _{2} O$ (I)\n$Br ^{-}( aq )+2 MnO _{4}( aq ) \\rightarrow 2 MnO _{2}( s )$ $+ BrO _{3}( aq )+2 OH ^{-}( aq )$\n$Br -( aq )+2 MnO _{4}( aq )+ H _{2} O ( I ) \\rightarrow$ $2 MnO _{2}( s )+ BrO _{3}( aq )+2 OH ^{-}( aq )$\n$Br ^{-}( aq )+2 MnO _{4}( aq )+2 OH ^{-}( aq ) \\rightarrow$ $2 MnO _{2}( s )+ BrO _{3}( aq )+ H _{2} O ( l )$'
+      true_answer: '$Br^⁻ + {2MnO_4}^⁻ + {2OH}^⁻ \rightarrow {BrO₃}^⁻ + 2MnO_2 + H_2O$'
+
+    - text: 'Physical support of the body and protection of the viscera are functions of $\\qquad$ tissue\nosseous\ndense regular\nadipose\nareolar'
+      true_answer: 'osseous'
+
+    - text: 'Heavy rains cause the water in a creek to rise. The fastmoving water carries a lot of rocks, gravel, and silt toward a lake.\n\nWhat causes the mixture to separate when the water reaches the lake?\nA. The components have different boiling points.\nB. Some of the components are very large.\nC. The components have different densities.\nD. One of the components is magnetic.'
+      true_answer: 'C.The components have different densities.'
+
+    - text: '8. How are the empirical and molecular formulas for a compound related?\nAn empirical formula is always larger than the molecular formula.\nAn empirical formula is sometimes a multiple of the molecular formula.\nA molecular formula is sometimes a multiple of the empirical formula.\nA molecular formula is always the same as an empirical formula.'
+      true_answer: 'A molecular formula is sometimes a multiple of the empirical formula'
+
+    - text: 'Question 1 of $2 5$\nWhich would provide the body with the most energy?\nA. Breaking the bonds in a polysaccharide\nB. Breaking a double carbon bond\nC. Creating bonds to form a nuclelc acid\nD. Forming bonds between lipids\nsUbMit'
+      true_answer: 'A. Breaking the bonds in a polysaccharide'
+
+    - text: 'How can the number of core electrons be determined from the periodic table?\nA. By finding the atomic number minus the group number\nB. By finding the atomic number plus the group number\nC. By finding the group number plus the period number\nD. By finding the atomic number minus the period number\nSUBMIT'
+      true_answer: 'A.By finding the atomic number minus the group number'
+
+    - text: '11,Unlike other individual difference such as personality, attitude are:\nA, Not have a genetic component\nB, Not learned from direct experience\nC, Not linked with behavior\nD, Not have impact on organization performance'
+      true_answer: 'A, Not have a genetic component'
+
+    - text: 'Angiosperms are divided into two groups called monocots and dicots. The main difference between monocots and dicots is the number of $\\square$\nDONE'
+      true_answer: 'cotyledon'
+
+    - text: 'An electrocardiogram (ECG or EKG) provides direct information regarding:\nThe conduction system in the heart.\nPatency of the coronary arteries.\nDirection of the flow of blood through the heart.\nBlood flow through the pulmonary circuit.'
+      true_answer: 'The conduction system in the heart'
+
+    - text: 'Belance the following chemical equation.\nThese are fill in the blank answers so make sure you put a number in answer for eac spotleave NO answer space blank.\n$\\square$ $CO _{2}+$ $\\square$\n\\[\nH _{2} O \\Rightarrow\n\\]\n$\\square$\n$C _{2} H _{5} OH +$ $\\square$ O2'
+      true_answer: '2 3 1 3'
+
+    - text: 'Which group of elements have a full octet of electrons? Click "View Image" to look at the periodic table.\na) Alkali metals\nb) Noble gases\nc) Halogens\nd) Transition metals'
+      true_answer: 'b) Noble gases'
+
+    - text: 'Sebuah balok ditahan di puncak bidang miring licin pada ketinggian 10 meter dari atas lantai. Balok dilepas sehingga meluncur turun pada bidang miring. Kecepatan balok ketika tiba di dasar bidang miring adalah.... $m / s$. Gunakan $g =10 m / s ^{2}$.\na. 14.14\nb. 200.00\nc. 1.41\nd. 0.71\ne. 10.00'
+      true_answer: 'a.14.14'
+
+    - text: 'The chemical weathering process known as oxidation would be most effective in the breakdown of which of the following Earth materials?\nView Available Hint(s)\npyroxenes\nquartz\ncalcite\nhalite\nfeldspars'
+      true_answer: 'pyroxenes'
+
+    - text: 'Question 17 of 25\nWhich of the following describes the main role of the electron transport chain in cellular respiration?\nA. It prodilyes molecules of ATP.\nB. It produces the energy carriers.\nC. It pumps hydrogen ions inside the cell.\nD. It breaks down glucose molecules.'
+      true_answer: 'A.It prodilyes molecules of ATP.'
+
+    - text: 'Select the correct answer.\n\nIf you increase the frequency of a sound wave four times, what will happen to its speed?\nA. The speed will increase four times.\nB. The speed will decrease four times.\nC. The speed will remain the same.\nD. The speed will increase twice.\nE. The speed will decrease twice.'
+      true_answer: 'C.The speed will remain the same.'
+
+    - text: 'Question 2 of $2 5$\nWhich molecule"s function is to carry transcribed genetic information out of the nucleus and into the cytoplasm?\nA. DNA\nB. mRNA\nC. TRNA\nD. rRNA\nSUBMIT'
+      true_answer: 'B.mRNA'
+
+    - text: 'Question 7 of 10\nWhich two sentences describe what scientists have discovered about cyanobacteria and red algae?\nA. Fossil evidence of cyanobacteria dates back further than fossil evidence of red algae.\nB. Red algae caused the great oxidation event, which occurred long after cyanobacteria formed.\nC. Red algae are single-celled organisms and are less complex than photosynthetic cyanobacteria.\nD. Cyanobacteria are prokaryotes that do not have organelles, while red algae are eukaryotes.'
+      true_answer: 'A. Fossil evidence of cyanobacteria dates back further than fossil evidence of red algae. D. Cyanobacteria are prokaryotes that do not have organelles, while red algae are eukaryotes.'
+
+    - text: 'Which of the following is most easily oxidized?\nClick for a reduction potential chart\nA. $H ^{+}$\nB. $Ni ^{2+}$\nC. $Fe ^{2+}$\nD. $Fe ^{3+}$'
+      true_answer: 'C.$Fe ^{2+}$'
+
+    - text: 'Photosynthesis is the process in the carbon cycle that fixes carbon from the atmosphere and making it available for food chains.\nTrue\nFalse'
+      true_answer: 'TRUE'
+
+    - text: 'When hydrogen ions (protons) are pumped across the inner mitochondrial membrane, they form a proton gradient. This is a form of potential energy that is harnessed to make ATP by a process known as:\nglycolysis.\nthe citric acid cycle.\nchemiosmosis.\nsubstrate-level phosphorylation'
+      true_answer: 'chemiosmosis'
+
+    - text: 'Which of the following best describes the cerebral arterial circle (circle of Willis)?\nA short anastomosis found in the cerebellum\nAn anastomosis surrounding the pituitary gland\nAn anastomosis circling the entire cortex\nA portal system connecting the hypothalamus with the anterior pituitary\nFormed by the superior and inferior sagittal sinuses\nMoving to the next question prevents changes to this answer.'
+      true_answer: 'An anastomosis circling the entire cortex '
+
+    - text: 'More specifically, the 2 and 3 in front of the $Al$ and $Br _{2}$ in the chemical equation refer to $\\qquad$\n\\[\n2 Al ( s )+3 Br _{2}( l ) \\rightarrow Al _{2} Br _{6}( s )\n\\]\n\nThe relative number of moles of $Al$ and moles of $Br _{2}$ reacting\nThe relative number of atoms of $Al$ and molecules of $Br _{2}$ reacting\nboth of the aboye'
+      true_answer: 'The relative number of moles of $AL$ and $Br_2$ moles of reacting '
+
+    - text: 'How many atoms of hydrogen are in $5.29 \\times 10^{2}$ molecules of ethanol, $CH _{3} CH _{2} OH$ ?'
+      true_answer: '$3174$'
+
+    - text: '. Una rueda de $30 cm$ de radio gira a $60 rpm$. $(0,75$ puntos).\n(a) Expresa la velocidad angular en unidades del SI. $(0,25)$\n(b) Calcula la velocidad lineal de un punto de la periferia de la rueda. $(0,5)$'
+      true_answer: '2π 0.6π'
+
+    - text: 'For metalloids on the periodic table, how do the group number and the period number relate?\nO The lower the group number, the lower the period numbers, so the metalloids are found in a diagonal moving down from left to right.\n\nO The lower the group number, the higher the period numbers, so the metalloids are found in a diagonal moving up from left to right.\n\nO The higher the group number, the lower the period numbers, so the metalloids are found in a diagonal moving down from left to right.\n\nO The higher the group number, the higher the period numbers, so the metalloids are found in a diagonal moving up from teft to right.'
+      true_answer: 'O The higher the group number, the higher the period numbers, so the metalloids are found in a diagonal moving up from left to right.'
+
+    - text: 'Which situation describes mutualism?\nA. Vegetables grow in a garden frequented by many rabbits.\nB. A bear catches and eats a salmon from a stream.\nC. Ticks live on and drink blood from a cow.\nD. Ants feed on aphid wastes and protect the aphids from predators.'
+      true_answer: 'D.Ants feed on aphid wastes and protect the aphids from predators.'
+
+    - text: 'A thermometer is placed in water in order to measure the water"s temperature. What would cause the liquid in the thermometer to rise?\nThe molecules in the water move closer together.\nThe molecules in the thermometer"s liquid spread apart.\nThe kinetic energy of the water molecules decreases.\nThe kinetic energy of the thermometer"s liquid molecules decreases.'
+      true_answer: 'The molecules in the thermometer’s liquid spread apart'
+
+    - text: 'QUESTION 6\nThe reaction: $CO _{2}( g )+ H _{2}( g )= H _{2} O ( g )+ CO ( g ) \\Delta H=15.2 k / mol$ At a certain temperature, $K=1.6 \\times 10^{4}$.\n\nRaising the temperature of the reaction mixture will:\na. cannot be determined\nb. cause [CO2] to increase\nc. cause $\\left[ H _{2} O \\right]$ to increase\nd. have no effect\n\nQUESTION 7'
+      true_answer: 'b.cause [CO2] to increase'
+
+    - text: 'Select the correct answer.\nWhen James sprayed liquid deodorant under his arm, the spot felt cold. Which sentence best explains why?\nA. The deodorant evaporates as it absorbs thermal energy from James"s skin.\nB. The deodorant condenses as it absorbs thermal energy from James"s skin.\nC. The deodorant evaporates as it transfers thermal energy to James"s skin.\nD. The deodorant evaporates as it absorbs temperature from James"s skin.\nE. The deodorant is a liquid that freezes at room temperature and pressure.\nReset\nNext'
+      true_answer: 'A.The deodorant evaporates as it absorbs thermal energy from James"s skin.'
+
+    - text: 'What is the function of the cremaster muscles?\nTo stimulate the prostate gland\nTo increase the surface area of the epididymis\nTo pull the testes closer to the body to retain heat in cold weather\nTo push sperm through the urethra during ejaculation'
+      true_answer: 'To pull the testes closer to the body to retain heat in cold weather'
+
+    - text: 'How many unpaired electrons are shown in a Lewis Dot Formula for silicon?\na. 0\nb. 1\nc. 2\nd. 3\ne. 4'
+      true_answer: 'a.0'
+
+    - text: 'Question 1 (1.5 points)\nIf 2 monosaccharides undergo dehydration synthesis, what results?\n2 separate compounds connected by an intermolecular force\n2 separate compounds connected by a chemical bond\n1 compound where the 2 cyclic portions are connected by an intermolecular force\n1 compound where the 2 cyclic portions are connected by a chemical bond'
+      true_answer: '1 compound where the 2 cyclic portions are connected by a chemical bond.'
+
+    - text: 'Howa polson that blocks voltage-gated calcium ion channels in the axon terminal would affect synaptic transmission?\nYou can respond once\nPrevents entry of sodium (Na) ions in the postsynaptic cell\nPromote a stronger action povention\nPrevent release of neurotransmitters\nPromote only a local potential\nNone of the above'
+      true_answer: 'Prevent release of neurotransmitters.'
+
+    - text: 'Intramembranous ossification results in the formation of which of the following bones?\nHumerus\nMandible\nTibia\nAtlas'
+      true_answer: 'Mandible'
+
+    - text: 'Question 16 of 25\nWhy is a cell that results from fertilization genetically different from the cells of the parents?\nA. Because the cell now contains twice the number of chromosomes\nB. Because the cell develops mutations as a result of sexual reproduction\nC. Because the cell has an incomplete set of chromosomes\nD. Because the cell is a combination of two parents" gametes'
+      true_answer: 'D.Because the cell is a combination of two parents" gametes'
+
+    - text: 'Moving to the next question prevems\nQuestion 46\nWhich of the following is the most superficial layer enclosing the heart?\nVisceral pericardium\nMyocardium\nEpicardium\nEndocardium\nParietal pericardium'
+      true_answer: 'Parietal pericardium'
+
+    - text: 'Corals are small animals that live in colonies in the ocean. They build a hard skeleton-like structure using minerals they absorb from the water. Each animal in the colony lives in a small hole in the structure. Acidic ocean conditions make it difficult for corals to produce the skeleton. In a species called smooth cauliflower corals, scientists have discovered a genetic variation that allows them to build skeletons with larger holes. Corals with this variation need to build less skeleton as they grow.\n\nWhich phenotype is most likely to become more common as smooth cauliflower corals adapt to increasing acidity in the ocean?\nA. Larger skeleton holes\nB. No skeletons\nC. Smaller skeleton holes\nD. No skeleton holes'
+      true_answer: 'A.Larger skeleton holes'
+
+    - text: 'The more massive a main sequence star, the $\\qquad$ its temperature because $\\qquad$ -\n\nSelect one:\na. lower; it burns heavier elements, which burn cooler\nb. higher; it must burn more hydrogen to keep from collapsing\nc. higher; it burns heavier elements, which burn hotter\nd. lower; the nuclear fusion is deeper in the star'
+      true_answer: 'b.higher; it must burn more hydrogen to keep from collapsing'
+
+    - text: 'Which of the following statements is true?\na. Biotic factors are nonliving components of an ecosystem.\nb. Ablotic factors are living components of an ecosystem.\nc. The available space in an ecosystem is an abiotic limiting factor.\nd. The available water supply in an ecosystem is a biotic limiting factor.\n\nPlease select the best answer from the choices provided\nA\nB\nC\nD'
+      true_answer: 'c.The available space in an ecosystem is an abiotic limiting factor.'
+
+    - text: 'Question 12\n\nWhich blood type is the universal recipient?\nB\n$A B$\nA\no'
+      true_answer: '$AB$'
+
+    - text: 'Which organisms eat only plants?\nA. Primary consumers\nB. Detrivores\nC. Secondary consumers\nD. Autotrophs'
+      true_answer: 'A.Primary consumers'
+
+    - text: 'hich best describes the modern periodic table?\nA. It is similar to Mendeleev"s periodic table, but the elements are ordered by increasing atomic mass.\nB. It is the same as Henry Moseley"s periodic table.\nC. It is similar to Moseley"s periodic table, but new elements are added as they are discovered.\nD. It is the same as Dmitri Mendeleev"s periodic table.'
+      true_answer: 'C. It is similar to Moseley"s periodic table, but new elements are added as they are discovered.'
+
+    - text: 'Unit Test\nActive\n14\n12\n13\n14\n15\n26\n17\n1:\nWhat is the definition of a Lewis base?\na substance that donates a proton\na substance that donates electrons to form a covalent bond\na substance that accepts electrons to form a covalent bond\na substance that when dissolved in water increases hydrogen ion concentration'
+      true_answer: 'a substance that donates electrons to form a covalent bond'
+
+    - text: 'Part A\n\nThe majority of protein digestion occurs in the mouth.\nTrue\nFalse\nSubmit\nRequest Answer\nProvide Feedback'
+      true_answer: 'FALSE'
+
+    - text: 'A wheel starts from rest at an angle of zero, and has constant angular acceleration that rotates it to a counterclockwise angular speed of $99 \\frac{ rad }{ s }$ when it reaches the angular position of $62 rad$.\n\nHow much time did this change in the angular velocity take?\nAnswer using a coordinate system where counterclockwise is positive.\nRound answer to two significant digits.\n$\\square$ S'
+      true_answer: '$1.25$'
+
+    - text: 'Select the correct answer.\n\nWhich structure, if cut off, will hamper sexual reproduction in fungi?\nA. hyphae\nB. fruiting body\nC. rhizoids\nD. mycorrhizae'
+      true_answer: 'B.fruiting body'
+
+    - text: 'Question:\n$\\qquad$ are environmental factors that can cause damage to DNA molecules or errors in the replication or transcription processes.\n\nAnswer input:\nSpelling counts but capitalization doesnit.'
+      true_answer: 'Mutagens'
+
+    - text: 'e list below includes some of the properties of tane, a common fuel. Identify the chemical perties in the list. Check all of the boxes that ply.\ndenser than water\nburns readily in air\nboiling point of $-1.1^{\\circ} C$\nodorless'
+      true_answer: 'burns readily in air'
+
+    - text: 'A bacterium that forms biofilms gains virulence by\nattaching to the host.\ninhibiting macrophages.\ninhibiting lysosomes.\nforming toxins.'
+      true_answer: 'attaching to the host.'
+
+    - text: 'Question 5 of 10\nWhich of these is a drawback of using natural gas?\nA. During its extraction, groundwater can be contaminated.\nB. It burns more cleanly than crude oil products.\nC. It is fairly safe for use in homes.\nD. Scientists have developed new ways of extracting it.\nSuemir'
+      true_answer: 'A.During its extraction, groundwater can be contaminated.'
+
+    - text: 'Select the best answer for the question.\n19. The law of definite proportions helps explain why water will always\nA. be released or used up in a chemical reaction.\nB. be used as a solvent to dissolve other compounds.\nC. consist of a particular proportion of hydrogen and oxygen.\nD. break down into gas when heated.'
+      true_answer: 'C.consist of a particular proportion of hydrogen and oxygen.'
+
+    - text: '40) Which of the following has a mass number of 1 ? (1pts)\nproton\nneutron\nhelium\nboth $A$ and\nB'
+      true_answer: 'Both A and B.'
+
+    - text: 'All of the following are concerns with regard to agricultural production and its effect on the environment except\n$\\qquad$\nA. increased water scarcity\nB. overfishing\nC. decreased soil salinity\nD. deforestation\n\nPlease select the best answer from the choices provided.\nA\nB\nC\nD'
+      true_answer: 'B.overfishing'
+
+    - text: 'Monounsaturated fatty acids make up about two-thirds of the total fot in avocados. The carbon chain of a monounsaturated fatty acid has\nMultiple Choice\none double bond.\ntwo or more double bonds.\nno double bonds.'
+      true_answer: 'one double bond.'
+
+    - text: 'What is the reaction that occurs when calcium carbonate is used as an ahtacid?\na. $Ca ( OH )_{2}( s )+2 HCl ( aq ) \\rightleftharpoons CaCl _{2}( aq )+2 H _{2} O ( l )$\nb. $H _{3} O ^{+}+ OH ^{-} \\rightleftharpoons 2 H _{2} O ( l )$\nc. $Mg ( OH )_{2}( s ) \\rightleftharpoons Mg ^{2+}( aq )+2 OH ^{-}( aq )$\nd. $CaCO _{3}( s )+2 HCl ( aq ) \\rightleftharpoons CaCl _{2}( aq )+ H _{2} O ( l )+ CO _{2}( g )$'
+      true_answer: 'd.$CaCO _{3}( s )+2 HCl ( aq ) \rightleftharpoons CaCl _{2}( aq )+ H _{2} O ( l )+ CO _{2}( g )$'
+
+    - text: 'A family that includes a mixture of parents and children unrelated by blood is also described as a(n):\nA. extended family.\nB. multigenerational family.\nC. biological family.\nD. blended family.'
+      true_answer: 'D.blended family.'
+
+    - text: '4.\n\nIs this a speed, velocity, or acceleration?\n\nA person running $10 mi / hr$ northwest.'
+      true_answer: 'velocity'
+
+    - text: 'The overall process of photosynthesis has the balanced chemical equation $6 CO _{2}+$ $6 H _{2} O \\rightarrow C _{6} H _{12} O _{6}+6 O _{2}$. What does this tell you about the relative amounts of carbon dioxide and water consumed in this process?\nA) For every gram of carbon dioxide consumed, one gram of water is consumed.\nB) For every six moles of carbon dioxide consumed, one mole of water is consumed.\nC) For every mole of carbon dioxide consumed, one mole of water is consumed.\nD) For every six grams of carbon dioxide consumed, one gram of water is consumed.'
+      true_answer: 'C) For every mole of carbon dioxide consumed, one mole of water is consumed.'
+
+    - text: 'What glassware should you use to make $250 mL$ of a $0.1 MHCl$ solution?\n$250 mL$ beaker\n$500 mL$ Erlenmeyer flask\n$1000 mL$ graduated cylinder\n$250 mL$ volumetric flask'
+      true_answer: '$250 mL$ volumetric flask'
+
+    - text: 'Question 13\n\nThe umbilical cord contains:\n(A) two umbilical veins and one umbilical artecy\n(B) two umbilical arteries and one umbilical vein\n(c\\) one umbilical artery and one umbilical vein\n\nD one pulmonary artery and one pulmonary vein'
+      true_answer: '(B) two umbilical arteries and one umbilical vein'
+
+    - text: 'Multiple Choice Question\n\nSeed germination is typically defined as the emergence of the\nradicle.\ntrue stem.\ncotyledons.\nNeed help? Review these concept'
+      true_answer: 'radicle'
+
+    - text: 'Question 20\n\nHighly polar compounds:\nAre hydrophilic\nDissolve well in water\nAll of the these are true\nInclude ionic and hydrogen-bonding molecules'
+      true_answer: 'All of the these are true'
+
+    - text: '4.4.1 Study: North American Civilizations\nBetween 13,000 and 16,000 years ago, huge sheets of ice covered much of Earth. Which statement best describes how this ice age influenced human migration to the Americas?\nA. There was no major change in water level or the amount of land exposed during this ice age, which means the ice age had little impact on human migration.\nB. There was less water in the ocean, which lowered sea levels and exposed more land, making it possible for people to migrate to new places.\nC. There was more water in the ocean, which raised sea levels and made it harder for people to migrate to new places\nHINT\nSUBMIT'
+      true_answer: 'B.There was less water in the ocean, which lowered sea levels and exposed more land, making it possible for people to migrate to new places.'
+
+    - text: 'What could be the fourth quantum number for one of the electrons in the $4 p$ energy sublevel of bromine?\nA. $m _{s}=0$\nB. $m_{s}=-\\frac{1}{2}$\nC. $m _{s}=1$\nD. $m_{s}=4$'
+      true_answer: 'B.$m_{s}=-\frac{1}{2}$'
+
+    - text: 'Fill in the Blank Question\nBundles of skeletal muscle cells are often called muscle $\\square$'
+      true_answer: 'fibers'
+
+    - text: 'Which sentence is true of archaea?\nA. They belong to one of the original kingdoms identified by Linnaeus.\nB. They are more closely related to bacteria than to eukaryotes.\nC. They have peptidoglycan in their cell walls.\nD. They live in extreme environments,'
+      true_answer: 'D.They live in extreme environments,'
+
+    - text: 'When ATP synthase uses energy from a proton gradient to generate ATP is a case of\n(A) photosynthesis\n(B) substrate-level phosphorylation\n(C\\) oxidative phosphorylation\n(D) none of the above'
+      true_answer: '(C) oxidative phosphorylation'
+
+    - text: 'Compound $X$ increases the rate of\n* 1 point\nthe reaction below.\n\\[\nCO _{2}+ H _{2} O \\xrightarrow{ X } H _{2} CO _{3}\n\\]\nan enzyme\nan indicator\na lipid molecule\nan ADP molecule'
+      true_answer: 'an enzyme'
+
+    - text: 'The correct sequence for aerobic metabolic breakdown of glucose is\nMultiple Choice\nglycolysis-preparatory reaction-citric acid cycle-electron transport system.\npreparatory reaction-glycolysis-electron transport-citric acid cycle.\nelectron transport system-citric acid cycle-preparatory reaction-glycolysis.\nNone of the choices are correct.'
+      true_answer: 'glycolysis-preparatory reaction-citric acid cycle-electron transport system.'
+
+    - text: 'MULTIPLE CHOICE QUESTION\n\nDo mitochondria and chloroplasts have their own DNA?\nYes\nNo'
+      true_answer: 'Yes'
+
+    - text: 'Which of the chemicals in the lab have polyatomic ions?\na. $Cu ( NO 3)^{2}$\nb. $KOH$\nc. glycerin\nd. sucrose\ne. $CH 3 COOH$'
+      true_answer: 'a.$Cu ( NO 3)^{2}$'
+
+    - text: 'Question 15 of 30\nWhich of the following mutations would most likety affect a persorls offspring?\nA. A mutation in nerve cells\nB. A mutation in blood cells\nC. A mutation in fung cells\nD. A mutation in sex cells\nguemir'
+      true_answer: 'D.A mutation in sex cellsguemir'
+
+    - text: 'Question 3\nThe frontal lobe of the brain is $\\qquad$ for driving a motor vehicle.\n-\na) not necessary\nb) not used\nc) essential'
+      true_answer: 'c) essential'
+
+    - text: '2. A cheetah is crouched $20 m$ to the east of an observer. At time the cheetah begins to run due east toward an antelope that is $50 m$ to the east of the observer. During the first $2.0 s$ of the attack, the cheetah"s coordinate $x$ varies with time according to the equation $x=20 m +\\left(5 \\frac{ m }{ s ^{2}}\\right) t^{2}$\n(a) Find the cheetah"s displacement between and\n(b) Find its average velocity during that interval\n(c\\) Find its instantaneous velocity at $t =1 s$'
+      true_answer: '20 m 10m/s 10m/s'
+
+    - text: 'Absorption of dietary calcium through the intestines requires:\naldosterone.\nADH.\ncalcitonin.\ncalcitriol.'
+      true_answer: 'calcitriol.'
+
+    - text: 'Unlike eukaryotes, bacterial DNA is not enclosed by a nuclear membrane. Instead, bacterial DNA is condensed into a region called the\n$\\square$ . Some bacteria also carry additional DNA elements called $\\square$ , which in some cases encode genes for antibiotic resistance.'
+      true_answer: 'nucleoid, plasmids'
+
+    - text: 'Arteries are sometimes called the $\\qquad$ vessels of the cardiovascular system because they have strong-resilient tissue structure.\nfenestrated\nresistance\ncompliance\ncapacitance\nhydrodynamic'
+      true_answer: 'resistance'
+
+    - text: 'Question 5 of 10\nPure liquid water is described as neutral because the water"s $pH$ is $\\qquad$\nA. 8\nB. 0\nC. 5\nD. 7'
+      true_answer: 'D.7'
+
+    - text: 'The cavity that houses the heart, lungs, and major blood vessels is called:\n(1) Abdominal cavity\n(2) Cranial cavity\n(3) Thoracic cavity\n(4) Spinal cavity'
+      true_answer: '(3) Thoracic cavity'
+
+    - text: 'd. Maltase\ne. Fructose\n8. All of the following involve hydrogen bonding EXCEPT\na. Transcription\nb. Enzyme/substrate binding\nc. Ice crystal formation\nd. Protein folding\nc. All of the above involve hydrogen bonds'
+      true_answer: 'c. All of the above involve hydrogen bonds'
+
+    - text: 'Question 16 of $2 5$\nHow are radar and an approaching siren different? How are they similar?\nA. The Doppler effect can be observed only with radar, but both devices use sound waves.\nB. Radar uses radio, and the siren uses sound waves, but both exhibit the Doppler effect.\nC. Radar uses sound waves, and the siren uses radio, but both exhibit the Doppler effect.\nD. The Doppler effect can be observed only in the approaching siren, but both devices use radio.\nSUBMIT'
+      true_answer: 'B.Radar uses radio, and the siren uses sound waves, but both exhibit the Doppler effect.'
+
+    - text: 'Which of the following terms describes an amino acid that is normally dispensable, but must be supplied by the diet in special circumstances when the need for it exceeds the body"s ability to make it?\na. Conditionally essential amino acid\nb. Essential amino acid\nc. Circumspect amino acid\nd. Conditionally nonessential amino acid\ne. Nonessential amino acid'
+      true_answer: 'a.Conditionally essential amino acid'
+
+    - text: 'which of the following is true about underground vegetable\na. Roots\nb. All\nc. Tuber\nd. Bulb\nlear my choice'
+      true_answer: 'b. All'
+
+    - text: 'Which protein serves as a chemical messenger?\nhemoglobin\nactin\nmyosin\ninsulin'
+      true_answer: 'insulin'
+
+    - text: 'Binding sites on the surface of actin allow the formation of cross bridges with molecules of :\n(A) ATP.\n(B) Myosin.\n(C\\) Troponin.\n(D) Creatine.\n(E) Tropomyosin.'
+      true_answer: '(B) Myosin.'
+
+    - text: 'During which change is heat energy released?\nA. Boiling\nB. Sublimation\nC. Condensation\nD. Melting'
+      true_answer: 'C.Condensation'
+
+    - text: 'Question 13 (1 point)\nThe use of the Indian mongoose to control rat populations\n1) shows how effective biological control can be.\n2) is an example of how coevolution makes biological control difficult.\n3) shows why integrated pest management usually fails.\n4) became a disaster when the mongoose turned out to be as invasive as its target.'
+      true_answer: '4) became a disaster when the mongoose turned out to be as invasive as its target.'
+
+    - text: 'Question 4 of 10\nWhat type of bonding around a central atom would result in a trigonal planar molecule?\nA. Four groups bound to it with no lone pairs\nB. Three groups bound to it with no lone pairs\nC. One group bound to it with two lone pairs\nD. Three groups bound to it with one lone pair'
+      true_answer: 'B.Three groups bound to it with no lone pairs'
+
+    - text: 'Question 12 (1 point)\nWhen taking a blood pressure, you didn"t hear the systolic reading as you released the pressure in the cuff. You will\na) close the control valve and immediately reinflate the cuff\nb) close the control valve when the diastolic pressure is obtained and reinflate the cuff\nc) open the control valve all the way and then reinflate the cuff\nd) open the control valve all the way, wait about 60 seconds, then reinflate the cuff'
+      true_answer: 'b) close the control valve when the diastolic pressure is obtained and reinflate the cuff'
+
+    - text: 'An engagement ring has a diamond witn...\n$1.2 \\cdot 10^{24}$\n$\\qquad$ atoms of carbon in it. How many moles of carbon are in the diamond? $\\qquad$\nSelect one:\n1.9\n0.5\n2.0\n1.5'
+      true_answer: '$2.0$'
+
+    - text: 'The main difference between mitosis in plant cells and in animal cells is that:\nA. there are no $G$ phases in most animal cells.\nB. a new cell membrane forms after cytokinesis in animal cells.\nC. plant cells do not copy their chromosomes.\nD. a new cell wall forms to separate two new plant cells\nSUBMIT'
+      true_answer: 'D.a new cell wall forms to separate two new plant cells'
+
+    - text: 'Multiple Choice Question\n\nWhat do gonadotropins do?\nA.stimulate the testes or ovaries\nB.boost mood\nC.regulate eating\nD.produce growth effects'
+      true_answer: 'A.stimulate the testes or ovaries'
+
+    - text: 'QUESTION\n- Which of the following terms is a removal of adhesions from the fallopian tubes?\nA. D\\&C\nB. salpingolysis\nC. theleplasty\nD. mastopexy'
+      true_answer: 'B.salpingolysis'
+
+    - text: 'A chemist lectures about the following definition for acids and bases.\nThe acid-base behavior is analyzed in terms of how electrons are transferred between compounds rather than in terms of how hydrogen ions are transferred.\n\nWhat is the chemist defining?\nthe Arrhenius concept of acids and bases\nthe classical concept of acids and bases\nthe Lewis concept of acids and bases\nthe Bronsted-Lowry concept of acids and bases'
+      true_answer: 'the Lewis concept of acids and bases'
+
+    - text: 'Question 5 of 10\nWhich type of data about a population is produced by a simulation that explores the effect of natural selection?\nA. Decreases in size\nB. Phenotype frequencies\nC. Limiting factors\nD. Increases in size\nSUBMIT'
+      true_answer: 'B.Phenotype frequencies'
+
+    - text: 'Which type of mutation is likely to have the least effect on an organism\nA. A nondisjunction mutation\nB. A silent mutation\nC. A frameshift mutation\nD. A chromosomal mutation'
+      true_answer: 'B.A silent mutation'
+
+    - text: 'Question 10 of 25\nWhich two sets of changes are most likely to cause a population to remain stable?\nA. Increased emigration and decreased births\nB. Increased births and decreased immigration\nC. Increased deaths and decreased immigration\nD. Increased births and increased deaths'
+      true_answer: 'D. Increased births and increased deaths'
+
+    - text: 'Which one of the following acids is the weakest?\na. hydrofluoric acid, HF\nb. hydrobromic acid, $HBr$\nc. nitric acid, $HNO _{3}$\nd. sulfuric acid, $H _{2} SO _{4}$'
+      true_answer: 'a.hydrofluoric acid, HF'
+
+    - text: 'What are the building blocks of proteins?\nMultiple Choice\namino acids\nmonosoccharides\nfotty acids\nnucleotides'
+      true_answer: 'amino acids'
+
+    - text: 'Identify the correct way to cite the BLS Highest-Paying Occupations web page.\nOccupational Outlook Handbook. \Highest-Paying Occupations.\" Bureau of Labor Statistics and US Department of Labor'
+      true_answer: 'Occupational Outlook Handbook. "Highest-Paying Occupations." Bureau of Labor Statistics, US Department of Labor.'
+
+    - text: 'GI hormones, known as the incretin system, like secretin, gastrin, cholecystokinin secretion will cause which of the following? (Hint: We use incretin mimetics to treat DM 2)\nIncrease glucose release to get glucose levels high in the body.\nIncrease glucagon secretion after a meal in anticipation of glucose release.\nSuppression of insulin release to increase glucose levels.\nIncreased insulin secretion after a meal in anticipation of glucose release.'
+      true_answer: 'Increased insulin secretion after a meal in anticipation of glucose release.'
+
+    - text: 'Chargaff discovered that in DNA extracted from organisms, the amounts of guanine and cytosine are roughly the same, and the amounts of adenine and thymine are roughly the same. Why was this discovery important?\nA) The amount of thymine can"t be more than the amount of cytosine in a given strand of DNA.\nB) The amounts of each nitrogenous base in DNA determines the function of the DNA.\nC) The base pairing of adenine to thymine and of guanine to cytosine was a key piece of information in elucidating the structure of DNA.\nD) The amounts of each nitrogenous base in DNA proved that DNA is copied before cells divide.'
+      true_answer: 'C) The base pairing of adenine to thymine and of guanine to cytosine was a key piece of information in elucidating the structure of DNA.'
+
+    - text: '4.5.2 Test (CST): The Media, Race, and Identity\n\nQuestion 6 of 10\nWhich person is demonstrating an attempt to assimilate in the dominant culture of the United States?\nA. Lina, who reads hard copies of books instead of reading electronic versions\nB. Jasmine, who wears white clothing to show off the darkness of her skin\nC. Franco, who changed his name to Frank so people would think he was a white American\nD. Tomas, who established a website to sell shirts so he would not have to pay rent for a store'
+      true_answer: 'C. Franco, who changed his name to Frank so people would think he was a white American'
+
+    - text: 'Which are exam les of bacterial infections?\nMalaria and African Sleeping Sickness\nStrep throat, diphtheria, and an infected wound\nTrichinosis, hook worm, and elephantiasis\nCommon cold, COVID 19, flu, and chicken pox'
+      true_answer: 'Strep throat, diphtheria, and an infected wound'
+
+    - text: 'What does tagmatization mean?\n(A) That the segments are different in form and function.\n(B) That the segments are symmetrical,\n(C\\) That the organism has jointed appendages.\n(D) That the organism has an exoskeleton.\n(E) That the organism molts.'
+      true_answer: '(A) That the segments are different in form and function.'
+
+    - text: 'What is the molarity of a solution prepared by dissolving 0.274 $mol HCl$ in sufficient water to produce $150 . mL$ of solution?\n$0.547 M$\n$1.83 M$\n$1.83 \\times 10^{-3} M$\n$5.47 \\times 10^{-3} M$'
+      true_answer: '$1.83 M$'
+
+    - text: 'Question 6 of 10\nWhat happens in nuclear fission?\nA. Two separate nuclei join together to form one nucleus.\nB. A nucleus is divided into more than one nucleus.\nC. Electrons fall to lower energy levels, emitting photons.\nD. A nucleus gains neutrons by emitting an alpha particle.'
+      true_answer: 'B.A nucleus is divided into more than one nucleus.'
+
+    - text: 'Capillary carries oxygenated blood (oxygen-rich blood) from the heart to the rest of the body.\nTrue\nFalse'
+      true_answer: 'FALSE'
+
+    - text: 'Which statement about DNA replication is true?\nA. Eukaryotes only have one circular chromosome that unwinds at multiple locations.\nB. Prokaryotes only have one origin of replication to initiate replication.\nC. Eukaryotes can only replicate one segment of a chromosome at a time.\nD. Prokaryotes can only replicate their single circular chromosome in the nucleus.'
+      true_answer: 'B.Prokaryotes only have one origin of replication to initiate replication.'
+
+    - text: 'Which of the following characteristics describes polycythemia?\na. cancer characterized by an increased number of red cells in the bone marrow\nb. abnormal hemoglobin, which results in red blood cells assuming an abnormal sickle shape\nc. insufficient iron in the red blood cells because of blood loss, poor absorption, or inadequate intake\nd. inadequate number of red blood cells circulating as a result of premature destruction'
+      true_answer: 'a. cancer characterized by an increased number of red cells in the bone marrow'
+
+    - text: 'Infectious mononucleosis is caused by a'
+      true_answer: 'virus'
+
+    - text: 'Developmental disabilities cannot be cured.\n\nPlease select the best answer from the choices provided.\nT\nF'
+      true_answer: 'F'
+
+    - text: 'Question 3\n\nIsotopes are distinguished from one another by different numbers of $\\qquad$\nvalence electrons\nprotons\nprotons and electrons\nneutrons'
+      true_answer: 'neutrons'
+
+    - text: 'A fracture in the shaft of the bone would be a break in the:\nEpiphysis\nArticular Cartilage\nBones do not break\nDiaphysis'
+      true_answer: 'Diaphysis'
+
+    - text: 'A hiker is bitten by a wild animal. The bite is deep, and the hiker is unsure if the animal is rabid.\nQuestion: What is the first step in this situation?\nA. Wash the wound with soap and water\nB. Seek immediate medical attention\nC. Apply a bandage and wait\nD. Apply pressure to stop the bleeding'
+      true_answer: 'A.Wash the wound with soap and water'
+
+    - text: 'What type of biological polymer will monomers with the general structure shown below form?\nA. Nucleic acid\nB. Triglyceride\nC. Polypeptide\nD. Polysaccharide'
+      true_answer: 'C.Polypeptide'
+
+    - text: 'Sporophytes produce $\\qquad$ spores.\ndiploid\ntriploid\nhaploid'
+      true_answer: 'haploid'
+
+    - text: 'What is an ionic solid?\nA. Many positive and negative ions bonded to form a solid\nB. Many metal atoms bonded together to form a solid\nC. One positive ion and one negative ion bonded to form a solid\nD. Many nonmetal atoms bonded together to form a solid'
+      true_answer: 'A.Many positive and negative ions bonded to form a solid'
+
+    - text: 'Which is an example of negative acceleration?\na snowboarder who increases speed when traveling downhill\na biker who maintains a constant speed through a race\na skateboarder who reduces speed when moving up a hill\na runner who fluctuates speed by increasing and decreasing speed'
+      true_answer: 'a skateboarder who reduces speed when moving up a hill'
+
+    - text: 'QUESTION 41\nWhich element is least likely to be used in semiconductors?\na. silicon\nb. boron\nc. phosphorus\nd. sulfur\nOUESTION 42'
+      true_answer: 'd.sulfur'
+
+    - text: '48. Frothy yellow to greenish coloured vaginal discharge is a result of infection with...\na) Trichomonas Vaginalis\nb) Gonorrhoea\nc) Moniliasis\nd) Chlamydia'
+      true_answer: 'a) Trichomonas Vaginalis'
+
+    - text: 'Multiple Choice Question\n\nWhat type of modified sweat glands produces wax in the ear canal?\nsebaceous glands\nceruminous glands\nmammary glands'
+      true_answer: 'ceruminous glands'
+
+    - text: 'If a DNA double helix is 100 nucleotide pairs long and contains 25 adenine bases, how many guanine bases does it contain?\n150\n200\n75\n25\n50'
+      true_answer: '$75$'
+
+    - text: 'The process responsible for variations in the colour and banding of snail shells is\nA. mutation\nB. variation\nC. adaptation\nD. gradualism'
+      true_answer: 'C.adaptation'
+
+    - text: 'What is happening to the plant life on the shores of Lake Powell because of the changing water levels?\nA. It is blossoming.\nB. It is causing mold.\nC. It is restoring the land.\nD. It is not able to grow.'
+      true_answer: 'D. It is not able to grow.'
+
+    - text: 'Count judgments in South Atrica have concluded that it is possible to change one"s sex, including one"s chromosomes\nTrue\nFalse'
+      true_answer: 'FALSE'
+
+    - text: 'When the body detects a pathogen, chemical signals attract white blood cells that will ingest and destroy any foreign harmful particles. What type of immune response is this?\nA. Specialized\nB. Nonspecific\nC. Specific\nD. Nonspeciallized\nSUBMIT'
+      true_answer: 'B.Nonspecific'
+
+    - text: 'Time left\nTwo masses, one heavier than the other, are held 1 meter above the ground. Which has more potential energy?\na. Not enough information\nb. The lighter mass\nc. The heavier mass\nd. They are both the same\nClear my choice'
+      true_answer: 'c.The heavier mass'
+
+    - text: 'An analgesic is used to assist with\nMultiple Choice\ninflammation.\nInfection.\npain.\nstiffness.'
+      true_answer: 'pain'
+
+    - text: 'Which of the following intermolecular forces would affect boiling point the most?\nA. Van der Waals forces\nB. Induced dipole attractions\nC. Dipole-dipole attractions\nD. Hydrogen bonding\nSUBMIT'
+      true_answer: 'D.Hydrogen bonding'
+
+    - text: 'Which of the following is a characteristic of the plasma membrane?\nIt is made up of one layer of phosphollipids.\nIt doesn"t contain any molecules aside from phospholliplds.\nIt allows some molecules to pass through but prevents others from doing so.\nThe outward facing phospholipid tails give it a rough quality.'
+      true_answer: 'It allows some molecules to pass through but prevents others from doing so.'
+
+    - text: 'In pea plants, tallness $( T )$ is dominant to shortness $( t )$. What are the predicted percentages of the genotypes of the offspring if a homozygous short plant is crossed with a heterozygous tall plant?\n25 percent $Tt , 75$ percent $tt$\n25 percent tall, 75 percent short\n50 percent $Tt , 50$ percent $tt$\n50 percent tall, 50 percent short'
+      true_answer: '$50$ percent $Tt$, $50$ percent $tt$'
+
+    - text: 'How are vapor pressure and intermolecular forces related?\nThe stronger the intermolecular forces, the lower the vapor pressure.\nThe stronger the intermolecular forces, the higher the vapor pressure.\nThe strength of the intermolecular forces has no effect on the vapor pressure.'
+      true_answer: 'The stronger the intermolecular forces, the lower the vapor pressure.'
+
+    - text: 'Which of the following substances receptor is located inside of the cells?\na. Epinephrin\nb. Dopamine\nc. Cortisol\nd. Norepinephrine'
+      true_answer: 'c.Cortisol'
+
+    - text: 'In a type of anaerobic respiration called sulfate respiration, prokaryotes derive energy by reducing inorganic sulfates to which of the following compounds?\n$CO _{2}$\n$CH _{4}$\n$H _{2} S$\n$SO _{2}$'
+      true_answer: '$H _{2} S$'
+
+    - text: 'Which statement best describes how reproduction leads to natural selection in a population?\nOrganisms do not produce many offspring, so all of them can survive and pass on their traits.\nOrganisms overproduce offspring; consequently, all of them are likely to survive and pass on traits.\nOrganisms overproduce offspring, so only some survive and pass on their traits.\nOrganisms do not overproduce offspring; therefore, those that are produced will develop the best traits.'
+      true_answer: 'Organisms overproduce offspring, so only some survive and pass on their traits.'
+
+    - text: 'Zinc fingers\nuse zinc to bind to DNA"s phosphate backbone.\ncan bind DNA and act as transcription factors.\nuse a single domain to recognize 9 bp of DNA.\ntypically recognize the minor groove of DNA.'
+      true_answer: 'use a single domain to recognize 9 bp of DNA, typically recognize the minor groove of DNA.'
+
+    - text: 'Which of the following hormones stimulates contractions of uterus during childbirth?\nMultiple Choice\nProlactin\nOxytocin\nLuteinizing hormone\nFollicle-stimulating hormone'
+      true_answer: 'Oxytocin'
+
+    - text: 'Question 6 of 10\ne success of the grape workers union showed:\nA. That farmworkers could not organize.\nB. That farm laborers had no friends.\nC. That fruit growers did not need workers.\nD. That boycotts could be successful.'
+      true_answer: 'D.That boycotts could be successful.'
+
+    - text: 'The main function of glucose is to provide the body with a source of fuel.\nTrue\nFalse'
+      true_answer: 'TRUE'
+
+    - text: 'If a reaction occurs, what will be the products of the unbalanced reaction below?\n\\[\nMg (s)+ H _{2} O (\\Lambda) \\rightarrow\n\\]\n\nThe Activity Series of Elements\nA. $MgO (s)+ H _{2}(g)$\nB. $MgH _{2}(s)+ O _{2}(g)$\nC. No reaction will occur.\nD. $Mg ( OH )_{2}(a q)+ H _{2}(g)$'
+      true_answer: 'D.$Mg ( OH )_{2}(a q)+ H _{2}(g)$'
+
+    - text: 'The Bohr model of the atom explained why emission spectra are discrete. It could also be used to explain the photoelectric effect. Which is a correct explanation of the photoelectric effect according to the model?\nElectrons are emitted with more speed when brighter light strikes them.\nElectrons need small amounts of energy to be released from an atom.\nElectrons move between levels only if they are hit by the right frequency of light.\nElectrons need specific amounts of energy to jump levels and be emitted.'
+      true_answer: 'Electrons need specific amounts of energy to jump levels and be emitted.'
+
+    - text: 'What would result if a female had one of the greater vestibular glands ducts blocked by cyst?\nMissed menstruation\nThinning of endometrium\nOvulation does not occur\nVaginal dryness'
+      true_answer: 'Vaginal dryness'
+
+    - text: 'Which sentence most accurately describes the layers of Earth"s atmosphere?\nA. The layer with the highest temperatures is the troposphere, and the layer with the most water vapor is the thermosphere.\nB. The layer with the highest temperatures is the mesosphere, and the layer with the most water vapor is the thermosphere.\nC. The layer with the highest temperatures is the mesosphere, and the layer with the most water vapor is the troposphere.\nD. The layer with the highest temperatures is the thermosphere, and the layer with the most water vapor is the troposphere.'
+      true_answer: 'D.The layer with the highest temperatures is the thermosphere, and the layer with the most water vapor is the troposphere.'
+
+    - text: 'What must occur for protein translation to begin?\nA water molecule must be added to the protein chain.\nA peptide bond must form between subunits of mRNA.\nThe amino acid Cys must be picked up by IRNA.\nThe codon AUG must be identified.'
+      true_answer: 'The codon AUG must be identified.'
+
+    - text: 'The layer of the epidermis that contains abundant desmosomes and dendritic cells is the\nstratum corneum.\nstratum granulosum.\nstratum spinosum.\nstratum basale.\nstratum lucidum.'
+      true_answer: 'stratum spinosum.'
+
+    - text: 'Fossils $\\qquad$\nform whenever an organism dies\nsupport evolution because they show changes in an organism"s structure\ncan only form when organisms are buried allve\ndisprove evolution'
+      true_answer: 'can only form when organisms are buried allve'
+
+    - text: 'Which of the following is not a reason that ADHD may be overdiagnosed?\nWhat might seem like inattention to some parents and teachers could simply reflect exposure to too much technology.\nDoctors are too quick to medicate children as a behavior treatment.\nThe amount of $ADHD$ in the population has increased tenfold since it was first identified.\nThere is greater awareness of ADHD now than in the past.'
+      true_answer: 'The amount of $ADHD$ in the population has increased tenfold since it was first identified.'
+
+    - text: 'Question 2 of 10\nA population of deer mice with light-colored fur lives in Sand Hills, Nebraska. The ground in Sand Hills is light colored where glaciers have deposited sand on top of dark soil. In contrast, areas outside Sand Hills have dark soil and dark-furred mice. How did the mice in Sand Hills come to have light-colored fur?\nA. Mice learned how to change their fur to a lighter color.\nB. Light-colored sand caused a mutation for lighter fur color in the mice.\nC. Mice with light-colored fur were selected for in the sandy environment.\nD. Mice are able to change their fur color at will.'
+      true_answer: 'C.Mice with light-colored fur were selected for in the sandy environment.'
+
+    - text: 'Momentum is a measure of the $\\qquad$ of an object.\n\nWhich term accurately completes the sentence?\nmass\nmotion\nforce\nweight'
+      true_answer: 'motion'
+
+    - text: 'Which class of biological molecule is made up of long hydrocarbon chains and is not soluble in water?\nA. Lipids\nB. Carbohydrates\nC. Proteins\nD. Nucleic acids\nSUEMIT'
+      true_answer: 'A.Lipids'
+
+    - text: 'Read this passage:\nThe buzzing of the bees around the raspberry bush reminded Amelia of a helicopter coming in for a landing.\n\nWhich of the five senses is being used to evoke an emotion in the passage?\nA. Sight\nB. Touch\nC. Sound\nD. Smell'
+      true_answer: 'C.Sound'
+
+    - text: 'A $50 kg$ aardvark runs with a speed of $6 m / s$. What is the kinetic energy of the aardvark?\nA. $900 J$\nB. $600 J$\nC. $150 J$\nD. $300 J$'
+      true_answer: 'A. $900 J$'
+
+    - text: '84. Suppose we are given a standard maximization linear programming problem with a feasible set $S$ and an objective function $P=x+1.2 y$. If the vertices of the feasible set $S$ are $A(0,0), B(90,0), C(48$, 84), and $D(0,100)$, which one of the following statement is true?\n\nSelect one:\na. The problem has more than one optimum solution\nb. The problem has only one feasible solution\nc. Infeasible solution\nd. The highest value of $P$ is 148.8'
+      true_answer: 'd.The highest value of $P$ is 148.8'
+
+    - text: 'According to the Mental Health Care Act 17 of 2002, an appointed administrator"s responsibility is:\na. To ensure the mentally ill person"s participation in social activities.\nb. To prescribe medication for the mentally ill person.\nc. To manage all aspects of the property of a mentally ill person or a person with severe or profound intellectual disability.\nd. To act as the legal representative of the mentally ill person in court.'
+      true_answer: 'b.To prescribe medication for the mentally ill person.'
+
+    - text: 'MULTIPLE CHOICE QUESTION\n\nWhich of the following is true about tick reproduction?\nThey must wait until a relatively old age before reproducing.\nThe can reproduce at a very young age.\nThey have a low reproductive potential and lay few eggs.\nBoth males and females lay eggs.'
+      true_answer: 'Ticks can reproduce at a very young age.'
+
+    - text: 'In regard to the kidneys" role in regulating water balance in the body, the term reabsorption means the amount of the substance that is:\nabsorbed back in to the blood after being filtered.\nsecreted from the kidneys into lymph for absorption by the liver.\nexcreted in the urine.\nfiltered into the urine.'
+      true_answer: 'secreted from the kidneys into lymph for absorption by the liver.'
+
+    - text: 'Where are upper motor neurons located?\nMultiple Cholce\nPostertior hom of the spinal cord\nSpinal cord\nSpinothalamic tract\nCerebral cortex or brainstem\nAnterlor horn of the spinal cord'
+      true_answer: 'Cerebral cortex or brainstem'
+
+    - text: '6. $\\qquad$ fibers provide elasticity to your skin.\nA. Keratin\nB. Collagen\nC. Sebaceous\nD. Endometric'
+      true_answer: 'B.Collagen'
+
+    - text: 'A substance is made up of slow-moving particles that have very little space between them. Based on this information, what can most likely be concluded about this substance?\nIt is not a gas because its particles do not move continuously.\nIt is a gas because its particles move continuously in a straight line.\nIt is not a gas because its particles do not have large spaces between them.\nIt is a gas because its particles move in many different directions.'
+      true_answer: 'It is a gas because its particles move in many different directions.'
+
+    - text: 'The epidermis consists of five layers of cells, each layer with a distinct role to play in the health, well-being, and functioning of the skin. Which of the following layers is responsible for cell division and replacement?\na. stratum basale\nb. stratum granulosum\nc. stratum corneum\nd. stratum lucidum\nCheck'
+      true_answer: 'a.stratum basale'
+
+    - text: 'What"s the main function of red blood cells?\nCarry oxygen\nPrevent allergic reactions\nStop bleeding\nFight infections'
+      true_answer: 'Carry oxygen'
+
+    - text: 'Which fundamental force causes some forms of radioactivity?\nA. Strong nuclear force\nB. Weak nuclear force\nC. Electromagnetic force\nD. Gravity'
+      true_answer: 'B.Weak nuclear force'
+
+    - text: 'What type of community interaction involves a predator killing and eating a prey animal? $\\qquad$\nB. herbivory\nC. predations'
+      true_answer: 'C.predations'
+
+
+
+
+evaluation_criteria:
+  evals:
+    - "Check whether the answer contains the correct option from the options"
+    - 'Directly compare actual output to expected output to verify factual accuracy.'
+    - 'Check whether all elements mentioned in the expected output are present and correctly represented in the actual output.'
+    - 'Evaluate whether there are differences in details, values, or information between actual output and expected output. '
+    - 'Evaluate whether all elements mentioned in the expected output are highlighted in the actual output'

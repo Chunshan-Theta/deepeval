@@ -70,13 +70,11 @@ RUN_GEN_EVAL = False
 ###############
 if 'response_model' in plan:
     RUN_GEN_REPLY = True
-    model_type = plan['model_type']
     response_model_base_url = plan['response_model']['args']['base_url']
     response_model_token = plan['response_model']['args']['token']
     response_model_name = plan['response_model']['body_args']['model_name']
     response_model_system = plan['response_model']['body_args']['system_prompt']
 else:
-    model_type = None
     response_model_base_url = None
     response_model_token = None
     response_model_name = None
@@ -142,12 +140,12 @@ for group, group_tests in plan['test_examples'].items():
             text = test_item['text']
             llm_reply = test_item['reply']
 
-        
+        true_answer = test_item['true_answer'] if 'true_answer' in test_item else ""
         try:
-            score, reason = run_eval_process(test_source(text,[], "", llm_reply))
+            score, reason = run_eval_process(test_source(text,[], true_answer, llm_reply))
         except Exception as e:
             try:
-                score, reason = run_eval_process(test_source(text, [], "",llm_reply))
+                score, reason = run_eval_process(test_source(text, [], true_answer, llm_reply))
             except Exception as e:
                 print(f"!!!!!ERROR: {e}")
                 continue
