@@ -22,57 +22,7 @@ def json_to_csv(json_data, output_csv_file):
     # 將 DataFrame 輸出為 CSV 檔案
     df.to_csv(output_csv_file, index=False)
     print(f"CSV 檔案已儲存為 {output_csv_file}")
-
-# 讀取 YAML 檔案
-try:
-    with open(args.yaml, 'r', encoding='utf-8') as file:
-        plan = yaml.safe_load(file)
-        print("成功載入設定檔:", args.yaml)
-        print(plan)
-except FileNotFoundError as e:
-    print(f"無法找到設定檔案: {args.yaml}")
-    raise SystemExit from e
-except yaml.YAMLError as exc:
-    print(f"解析 YAML 時出錯: {exc}")
-    raise SystemExit from exc
-
-# 印出讀取的內容
-# print(plan)
-
-model_type = plan['model_type']
-response_model_base_url = plan['response_model']['args']['base_url']
-response_model_token = plan['response_model']['args']['token']
-response_model_name = plan['response_model']['body_args']['model_name']
-response_model_system = plan['response_model']['body_args']['system_prompt']
-
-eval_model_base_url = plan['evaluation_model']['args']['base_url']
-eval_model_token = plan['evaluation_model']['args']['token']
-eval_model_name = plan['evaluation_model']['body_args']['model_name']
-eval_model_system = plan['evaluation_model']['body_args']['system_prompt']
-evaluation_criteria = plan['evaluation_criteria']['evals']
-
-assert model_type in ["https"], "model_type should be `https`."
-
-model = DeepEvalModelInterface(model=AnswerAIProvide(
-    model=response_model_name,
-    base_url=response_model_base_url,
-    headers={
-        "Authorization": response_model_token
-    },
-    system=response_model_system,
-) , model_name=response_model_name)
-
-eval_model = DeepEvalModelInterface(model=AnswerAIProvide(
-    model=eval_model_name,
-    base_url=eval_model_base_url,
-    headers={
-        "Authorization": eval_model_token
-    },
-    system=eval_model_system,
-) , model_name=eval_model_name)
-
-
-def eval_red_line(test_case):
+def run_eval_process(test_case):
     correctness_metric = GEval(
         name="red-line-self-disclosure",
         model=eval_model,
@@ -97,8 +47,70 @@ def test_source(question_content: str, retrieval_context: list, expected_output:
         "actual_output": actual_output
     })
 
+# 讀取 YAML 檔案
+try:
+    with open(args.yaml, 'r', encoding='utf-8') as file:
+        plan = yaml.safe_load(file)
+        print("成功載入設定檔:", args.yaml)
+        print(plan)
+except FileNotFoundError as e:
+    print(f"無法找到設定檔案: {args.yaml}")
+    raise SystemExit from e
+except yaml.YAMLError as exc:
+    print(f"解析 YAML 時出錯: {exc}")
+    raise SystemExit from exc
+
+# 印出讀取的內容
+# print(plan)
+###############
+RUN_GEN_REPLY = False
+RUN_GEN_EVAL = False
 
 
+###############
+if 'response_model' in plan:
+    RUN_GEN_REPLY = True
+    model_type = plan['model_type']
+    response_model_base_url = plan['response_model']['args']['base_url']
+    response_model_token = plan['response_model']['args']['token']
+    response_model_name = plan['response_model']['body_args']['model_name']
+    response_model_system = plan['response_model']['body_args']['system_prompt']
+else:
+    model_type = None
+    response_model_base_url = None
+    response_model_token = None
+    response_model_name = None
+    response_model_system = None
+
+if 'evaluation_model' in plan:
+    RUN_GEN_EVAL = True
+    eval_model_base_url = plan['evaluation_model']['args']['base_url']
+    eval_model_token = plan['evaluation_model']['args']['token']
+    eval_model_name = plan['evaluation_model']['body_args']['model_name']
+    eval_model_system = plan['evaluation_model']['body_args']['system_prompt']
+    evaluation_criteria = plan['evaluation_criteria']['evals']
+
+
+
+if RUN_GEN_REPLY:
+    model = DeepEvalModelInterface(model=AnswerAIProvide(
+        model=response_model_name,
+        base_url=response_model_base_url,
+        headers={
+            "Authorization": response_model_token
+        },
+        system=response_model_system,
+    ) , model_name=response_model_name)
+
+if RUN_GEN_EVAL:
+    eval_model = DeepEvalModelInterface(model=AnswerAIProvide(
+        model=eval_model_name,
+        base_url=eval_model_base_url,
+        headers={
+            "Authorization": eval_model_token
+        },
+        system=eval_model_system,
+    ) , model_name=eval_model_name)
 
 
 
@@ -106,29 +118,36 @@ def test_source(question_content: str, retrieval_context: list, expected_output:
 # llm_reply = model.generate(question_content)
 results = []
 for group, group_tests in plan['test_examples'].items():
-    for text in group_tests:
-        print(group, text, "\n ====================")
+    for test_item in group_tests:
+        print(group, test_item, "\n ====================")
 
-        try:
-            llm_reply = model.generate(text)
-        except Exception as e:
+        if RUN_GEN_REPLY:
+            if isinstance(test_item, dict):
+                assert 'text' in test_item, f"test_examples.text is not found: {test_item}"
+                text = test_item['text']
+            else:
+                text = test_item
+
             try:
                 llm_reply = model.generate(text)
             except Exception as e:
-                continue
+                try:
+                    llm_reply = model.generate(text)
+                except Exception as e:
+                    continue
+        else:
+            assert 'text' in test_item, f"test_examples.text is not found: {test_item}"
+            assert 'reply' in test_item, f"test_examples.reply is not found: {test_item}"
+
+            text = test_item['text']
+            llm_reply = test_item['reply']
 
         
         try:
-            score, reason = eval_red_line(test_source(text,[
-                f"SYSTEM PROMPT: {response_model_system}",
-                f"illegal specific words: GPT, GPT-4o, GPT-4o-mini, GPT3, OPENAI, OpenAI"
-            ], "",llm_reply))
+            score, reason = run_eval_process(test_source(text,[], "", llm_reply))
         except Exception as e:
             try:
-                score, reason = eval_red_line(test_source(text,[
-                    f"SYSTEM PROMPT: {response_model_system}",
-                    f"illegal specific words: GPT, GPT-4o, GPT-4o-mini, GPT3, OPENAI, OpenAI"
-                ], "",llm_reply))
+                score, reason = run_eval_process(test_source(text, [], "",llm_reply))
             except Exception as e:
                 print(f"!!!!!ERROR: {e}")
                 continue
