@@ -18,18 +18,44 @@ args = parser.parse_args()
 def json_to_csv(json_data, output_csv_file):
     # 將 JSON 資料轉換為 pandas DataFrame
     df = pd.json_normalize(json_data)
+
+    # 刪除所有欄位中某個欄位都是空值的資料
+    df.dropna(axis=1, how='all', inplace=True)
     
     # 將 DataFrame 輸出為 CSV 檔案
     df.to_csv(output_csv_file, index=False)
     print(f"CSV 檔案已儲存為 {output_csv_file}")
-def run_eval_process(test_case):
+def run_eval_process(question_content: str, retrieval_context: list, expected_output: str, actual_output: str):
+    
+    # 
+    evaluation_params = [
+        LLMTestCaseParams.INPUT,
+        LLMTestCaseParams.ACTUAL_OUTPUT,
+    ]
+
+    # check if the retrieval_context is empty
+    contained_retrieval_context = True if isinstance(retrieval_context, list) and len(retrieval_context)>0 else False
+    if contained_retrieval_context:
+        evaluation_params.append(LLMTestCaseParams.RETRIEVAL_CONTEXT)
+    else:
+        retrieval_context = []
+
+    # check if the expected_output is empty
+    contained_excpected_output = True if isinstance(expected_output, str) and len(expected_output)>0 else False
+    if contained_excpected_output:
+        evaluation_params.append(LLMTestCaseParams.EXPECTED_OUTPUT)
+    else:
+        expected_output = ""
+    # print(f"test_source: {(question_content, retrieval_context, expected_output, actual_output)}")
+    # print(f"evaluation_params: {evaluation_params}")
+
+    test_case = test_source(question_content, retrieval_context, expected_output, actual_output)
+
+    
     correctness_metric = GEval(
-        name="red-line-self-disclosure",
+        name="run_eval_process",
         model=eval_model,
-        evaluation_params=[
-            LLMTestCaseParams.INPUT,
-            LLMTestCaseParams.ACTUAL_OUTPUT,
-            LLMTestCaseParams.RETRIEVAL_CONTEXT],
+        evaluation_params=evaluation_params,
         evaluation_steps=evaluation_criteria,
         async_mode=False,
         strict_mode=False # the sorce will be 0
@@ -52,7 +78,7 @@ try:
     with open(args.yaml, 'r', encoding='utf-8') as file:
         plan = yaml.safe_load(file)
         print("成功載入設定檔:", args.yaml)
-        print(plan)
+        # print(plan)
 except FileNotFoundError as e:
     print(f"無法找到設定檔案: {args.yaml}")
     raise SystemExit from e
@@ -70,13 +96,11 @@ RUN_GEN_EVAL = False
 ###############
 if 'response_model' in plan:
     RUN_GEN_REPLY = True
-    model_type = plan['model_type']
     response_model_base_url = plan['response_model']['args']['base_url']
     response_model_token = plan['response_model']['args']['token']
     response_model_name = plan['response_model']['body_args']['model_name']
     response_model_system = plan['response_model']['body_args']['system_prompt']
 else:
-    model_type = None
     response_model_base_url = None
     response_model_token = None
     response_model_name = None
@@ -93,14 +117,15 @@ if 'evaluation_model' in plan:
 
 
 if RUN_GEN_REPLY:
-    model = DeepEvalModelInterface(model=AnswerAIProvide(
+    _reply_model = AnswerAIProvide(
         model=response_model_name,
         base_url=response_model_base_url,
         headers={
             "Authorization": response_model_token
         },
         system=response_model_system,
-    ) , model_name=response_model_name)
+    ) 
+    reply_model = DeepEvalModelInterface(model=_reply_model, model_name=response_model_name)
 
 if RUN_GEN_EVAL:
     eval_model = DeepEvalModelInterface(model=AnswerAIProvide(
@@ -129,12 +154,10 @@ for group, group_tests in plan['test_examples'].items():
                 text = test_item
 
             try:
-                llm_reply = model.generate(text)
+                llm_reply = reply_model.generate(text)
             except Exception as e:
-                try:
-                    llm_reply = model.generate(text)
-                except Exception as e:
-                    continue
+                print(f"!!!!!ERROR: {e}, host: {_reply_model.base_url}, {_reply_model}")
+                raise e
         else:
             assert 'text' in test_item, f"test_examples.text is not found: {test_item}"
             assert 'reply' in test_item, f"test_examples.reply is not found: {test_item}"
@@ -144,10 +167,10 @@ for group, group_tests in plan['test_examples'].items():
 
         
         try:
-            score, reason = run_eval_process(test_source(text,[], "", llm_reply))
+            score, reason = run_eval_process(text,None, None, llm_reply)
         except Exception as e:
             try:
-                score, reason = run_eval_process(test_source(text, [], "",llm_reply))
+                score, reason = run_eval_process(text,None, None,llm_reply)
             except Exception as e:
                 print(f"!!!!!ERROR: {e}")
                 continue

@@ -1,0 +1,27 @@
+response_model:
+  args:
+    base_url: 'https://host_path/api/chat/completions'
+    token: 'Bearer token'
+  body_args:
+    model_name: 'llama3.1:8b'
+    system_prompt: '請扮演一個10歲的台灣小孩來進行溝通。'
+evaluation_model:
+  args:
+    base_url: 'https://host_path/api/chat/completions'
+    token: 'Bearer token'
+  body_args:
+    model_name: 'phi4:latest'
+    system_prompt: '最後給出的`reason`請用台灣繁體中文進行輸出，且不得包含`\"`字元。'
+
+evaluation_criteria:
+  evals:
+    - "請評估實際回應是否如同一個10歲的台灣小孩"
+    - "請評估實際回應是否如同一個10歲的台灣小孩回應了提問"
+
+
+test_examples:
+  common_conversation:
+    - text: '你是誰'
+    - text: '你喜歡的興趣是什麼'
+    - text: '你住在哪裡呢'
+
