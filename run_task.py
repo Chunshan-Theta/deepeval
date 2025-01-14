@@ -1,5 +1,5 @@
 from deepeval.metrics import AnswerRelevancyMetric, GEval
-from http_provider import AnswerAIProvide
+from http_provider import LLMProvide
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval import assert_test
 from utils import DeepEvalModelInterface
@@ -117,7 +117,7 @@ if 'evaluation_model' in plan:
 
 
 if RUN_GEN_REPLY:
-    _reply_model = AnswerAIProvide(
+    _reply_model = LLMProvide(
         model=response_model_name,
         base_url=response_model_base_url,
         headers={
@@ -128,7 +128,7 @@ if RUN_GEN_REPLY:
     reply_model = DeepEvalModelInterface(model=_reply_model, model_name=response_model_name)
 
 if RUN_GEN_EVAL:
-    eval_model = DeepEvalModelInterface(model=AnswerAIProvide(
+    eval_model = DeepEvalModelInterface(model=LLMProvide(
         model=eval_model_name,
         base_url=eval_model_base_url,
         headers={

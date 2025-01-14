@@ -348,7 +348,7 @@ class _HttpCommonModel(BaseLanguageModel):
         raise NotImplementedError("Async stream not implemented for http request model.")
 
         
-class AnswerAIProvide(BaseLLM, _HttpCommonModel):
+class LLMProvide(BaseLLM, _HttpCommonModel):
     """locally runs large language models."""
 
     class Config:
