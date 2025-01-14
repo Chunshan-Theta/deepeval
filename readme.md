@@ -1,4 +1,4 @@
-# Project Title
+# eval plan
 
 This project is designed to evaluate the performance of language models using a set of predefined test cases. The evaluation process involves generating responses from the models and scoring them based on specific criteria.
 
