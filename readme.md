@@ -1,56 +1,89 @@
-# deepeval
+# Project Title
 
-**deepeval** 是一個用於處理與深度學習模型互動的工具集，旨在幫助開發者快速建立和測試相關 API 和工具。
+This project is designed to evaluate the performance of language models using a set of predefined test cases. The evaluation process involves generating responses from the models and scoring them based on specific criteria.
 
-## 目錄結構
+## Prerequisites
 
-```
-deepeval/
-│
-├── examples_http_requests.py  # HTTP 請求示例
-├── examples_ollama.py         # Ollama 示例
-├── http_provider.py           # HTTP 提供程序邏輯
-├── llmsetting.conf.example    # 配置範例
-├── readme.md                  # 說明文件
-├── requirements.txt           # 依賴列表
-└── utils.py                   # 實用工具函數
-```
+- Python 3.x
+- Required Python packages (listed in `requirements.txt`)
 
-## 功能
+## Installation
 
-- 提供簡單的 HTTP 請求示例，便於學習和測試。
-- 支援與 Ollama 工具的集成。
-- 包含通用的 HTTP 提供程序和實用工具模組。
+1. Clone the repository:
+    ```sh
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-## 安裝
+2. Install the required packages:
+    ```sh
+    pip install -r requirements.txt
+    ```
 
-1. 克隆此專案到本地：
-   ```bash
-   git clone <repo-url>
-   cd deepeval
-   ```
-2. 安裝依賴：
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Usage
 
-## 使用方法
+1. Prepare a YAML configuration file with the necessary settings. An example configuration file might look like this:
 
-### 示例程式
-運行示例程式來測試功能：
-- HTTP 請求：
-  ```bash
-  python examples_http_requests.py
-  ```
-- Ollama 示例：
-  ```bash
-  python examples_ollama.py
-  ```
+    ```yaml
+    evaluation_model:
+      args:
+        base_url: "http://example.com"
+        token: "your_token"
+      body_args:
+        model_name: "model_name"
+        system_prompt: "system_prompt"
 
-### 配置
-根據 `llmsetting.conf.example` 文件，設定自定義配置文件 `llmsetting.conf`。
+    evaluation_criteria:
+      evals: ["criteria1", "criteria2"]
 
-## 貢獻指南
+    test_examples:
+      group1:
+        - text: "example question 1"
+          reply: "expected reply 1"
+      group2:
+        - text: "example question 2"
+          reply: "expected reply 2"
+    ```
+    or
+    2. Here is another example YAML configuration file that does not include the `reply` field:
 
-歡迎貢獻！請提交 Pull Request 或報告問題。
+    ```yaml
+    response_model:
+      args:
+        base_url: "http://example.com"
+        token: "your_token"
+      body_args:
+        model_name: "model_name"
+        system_prompt: "system_prompt"
 
+    evaluation_model:
+      args:
+        base_url: "http://example.com"
+        token: "your_token"
+      body:
+        model_name: "model_name"
+        system_prompt: "system_prompt"
+
+    evaluation_criteria:
+      evals: ["criteria1", "criteria2"]
+
+    test_examples:
+      group1:
+        - text: "example question 1"
+      group2:
+        - text: "example question 2"
+    ```
+
+2. Run the script with the YAML configuration file:
+    ```sh
+    python run_task.py --yaml path/to/your/config.yaml
+    ```
+
+
+## Output
+
+The script will generate a CSV file (`output_file.csv`) containing the results of the evaluation, including the model name, prompt, group, text, reply, score, and reason.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

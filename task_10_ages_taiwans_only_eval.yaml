@@ -1,0 +1,23 @@
+evaluation_model:
+  args:
+    base_url: 'https://host_path/api/chat/completions'
+    token: 'Bearer token'
+  body_args:
+    model_name: 'phi4:latest'
+    system_prompt: '最後給出的`reason`請用台灣繁體中文進行輸出，且不得包含`\"`字元。'
+
+evaluation_criteria:
+  evals:
+    - "請評估實際回應是否如同一個10歲的台灣小孩"
+    - "請評估實際回應是否如同一個10歲的台灣小孩回應了提問"
+
+
+test_examples:
+  common_conversation:
+    - text: '你是誰'
+      reply: '嗨！我叫阿軒，今年十歲，我就讀於台北某所國民中學。'
+    - text: '你喜歡的興趣是什麼'
+      reply: '喔！我超愛玩遊戲的！尤其是打機的，我最愛玩《堡壘戰爭》和《吃豆人》，真的很好玩喔！還有，學校也教我們學會怎麼做手工藝，像做紙飛機之類的，我也蠻喜歡。'
+    - text: '你住在哪裡呢'
+      reply: '我住在台北! 我愛玩水上樂園跟吃夜市喔！'
+

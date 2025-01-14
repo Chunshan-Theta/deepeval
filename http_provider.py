@@ -234,10 +234,11 @@ class _HttpCommonModel(BaseLanguageModel):
         **kwargs: Any,
     ) -> Iterator[str]:
         payload = {"prompt": prompt, "images": images}
+        api_url = f"{self.base_url}/v1/chat/completions" if len(self.base_url.split("/"))<3 else self.base_url
         yield from self._create_stream(
             payload=payload,
             stop=stop,
-            api_url=f"{self.base_url}/v1/chat/completions",
+            api_url=api_url,
             **kwargs,
         )
 
@@ -347,7 +348,7 @@ class _HttpCommonModel(BaseLanguageModel):
         raise NotImplementedError("Async stream not implemented for http request model.")
 
         
-class AnswerAIProvide(BaseLLM, _HttpCommonModel):
+class LLMProvide(BaseLLM, _HttpCommonModel):
     """locally runs large language models."""
 
     class Config:
