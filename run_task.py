@@ -13,7 +13,11 @@ import argparse
 # 設定命令列參數
 parser = argparse.ArgumentParser(description="讀取 YAML 設定檔")
 parser.add_argument('--yaml', type=str, help='設定檔案的路徑')
+parser.add_argument('--out', type=str, help='設定檔案的輸出檔名')
 args = parser.parse_args()
+outfile_name = args.out if args.yaml else 'output_file.csv'
+assert 'csv' in outfile_name, "out file should be csv type"
+
 
 def json_to_csv(json_data, output_csv_file):
     # 將 JSON 資料轉換為 pandas DataFrame
@@ -164,13 +168,17 @@ for group, group_tests in plan['test_examples'].items():
 
             text = test_item['text']
             llm_reply = test_item['reply']
+        
+        
+        retrieval = test_item['retrieval'] if 'retrieval' in test_item else None
+        expected = test_item['expected'] if 'expected' in test_item else None
 
         
         try:
-            score, reason = run_eval_process(text,None, None, llm_reply)
+            score, reason = run_eval_process(text,retrieval, expected, llm_reply)
         except Exception as e:
             try:
-                score, reason = run_eval_process(text,None, None,llm_reply)
+                score, reason = run_eval_process(text,retrieval, expected, llm_reply)
             except Exception as e:
                 print(f"!!!!!ERROR: {e}")
                 continue
@@ -187,6 +195,5 @@ for group, group_tests in plan['test_examples'].items():
         })
 
 
-
 # 呼叫函數進行轉換
-json_to_csv(results, 'output_file.csv')
+json_to_csv(results, outfile_name)
