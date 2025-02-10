@@ -1,8 +1,7 @@
 from deepeval.metrics import AnswerRelevancyMetric, GEval
-from http_provider import LLMProvide
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval import assert_test
-from utils import DeepEvalModelInterface
+from utils import DeepEvalModelInterface, LocalModel
 import configparser
 from deepeval.dataset import EvaluationDataset
 import pandas as pd
@@ -121,26 +120,23 @@ if 'evaluation_model' in plan:
 
 
 if RUN_GEN_REPLY:
-    _reply_model = LLMProvide(
-        model=response_model_name,
-        base_url=response_model_base_url,
-        headers={
-            "Authorization": response_model_token
-        },
-        system=response_model_system,
-    ) 
+    _reply_model = LocalModel.create(
+        model_name=response_model_name, 
+        base_url=response_model_base_url, 
+        authorization_token=response_model_token, 
+        system_prompt=response_model_system
+    )
     reply_model = DeepEvalModelInterface(model=_reply_model, model_name=response_model_name)
 
-if RUN_GEN_EVAL:
-    eval_model = DeepEvalModelInterface(model=LLMProvide(
-        model=eval_model_name,
-        base_url=eval_model_base_url,
-        headers={
-            "Authorization": eval_model_token
-        },
-        system=eval_model_system,
-    ) , model_name=eval_model_name)
 
+if RUN_GEN_EVAL:
+    _eval_model = LocalModel.create(
+        model_name=eval_model_name, 
+        base_url=eval_model_base_url, 
+        authorization_token=eval_model_token, 
+        system_prompt=eval_model_system
+    )
+    eval_model = DeepEvalModelInterface(model=_eval_model, model_name=eval_model_name)
 
 
 
